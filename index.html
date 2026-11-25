@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="ko" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#f4f6fb">
+<meta name="description" content="Money Grow — 실시간 개인 수익 대시보드">
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="icon" href="./icon-192.png">
+<link rel="apple-touch-icon" href="./icon-192.png">
+<link rel="stylesheet" href="./style.css">
+<title>Money Grow</title>
+</head>
+<body>
+<div class="shell">
+<aside class="rail">
+<a href="./" class="brand"><span class="brand-icon"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m4 16 5-5 4 3 7-8M14 6h6v6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Money Grow</a>
+<nav id="nav" aria-label="Money Grow"></nav>
+<div id="rail-bottom"></div>
+</aside>
+<main>
+<header class="top"><div><div id="today-date"></div><h1 id="page-title"></h1></div><div id="actions"></div></header>
+<div id="screen"></div>
+</main>
+</div>
+<dialog id="dialog"></dialog>
+<div id="notice" role="status"></div>
+<script type="module" src="./app.mjs"></script>
+</body>
+</html>
