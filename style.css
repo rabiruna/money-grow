@@ -45,3 +45,30 @@
   .compact-picker select{max-width:100%;min-height:44px;width:auto;background:#1e2733;color:#dbe6ef;border-color:#354050;padding:6px 9px;font-size:1rem}
   .compact-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
 }
+
+.mini main{padding:10px 12px 12px;max-width:620px}
+.mini .top{margin-bottom:8px}
+.mini #today-date{display:none}
+.mini h1{font-size:1.125rem;line-height:1.2}
+.mini #actions{gap:5px}
+.mini #actions button{min-height:34px;padding:5px 8px;font-size:.875rem}
+.mini .hero{min-height:0;padding:12px 14px;border-radius:13px}
+.mini .hero .live{margin-bottom:7px;padding:3px 8px}
+.mini .hero .caption{font-size:.875rem}
+.mini .counter{font-size:clamp(1.65rem,8vw,2.75rem);line-height:1.12;margin:3px 0 0}
+.mini .rates{grid-template-columns:repeat(4,minmax(0,1fr));gap:5px;margin-top:7px}
+.mini .rates .card{border-radius:8px;padding:7px 6px}
+.mini .rates .label{font-size:.8125rem;line-height:1.2}
+.mini .rates .value{display:block;font-size:.9375rem;line-height:1.2;margin-top:4px}
+@media(max-width:350px){
+  .mini .rates{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-height:245px){
+  .mini main{padding:6px 8px}
+  .mini .top{margin-bottom:4px}
+  .mini .hero{padding:7px 10px}
+  .mini .hero .live{margin-bottom:3px}
+  .mini .counter{font-size:clamp(1.35rem,7vw,2rem)}
+  .mini .rates{margin-top:4px}
+  .mini .rates .card{padding:4px}
+}

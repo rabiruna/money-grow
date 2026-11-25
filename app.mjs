@@ -96,14 +96,18 @@ function mobileDashboard() {
     </section>
   </section>`
 }
+function rateCards() {
+  return `<div class="rates">${['second','minute','hour','daily'].map((k,i)=>`<div class="card">${mini?'':`<span class="chip">${icon(['bolt','clock','clock','calendar'][i])}</span>`}<div class="label">${t(k)}</div><strong class="value" id="rate-${i}"></strong></div>`).join('')}</div>`
+}
 function dashboard() {
-  return `${mobileDashboard()}<div class="desktop-dashboard"><section class="hero">
-    <canvas id="chart" aria-hidden="true"></canvas>
+  const counter=`<section class="hero">
+    ${mini?'':'<canvas id="chart" aria-hidden="true"></canvas>'}
     <div class="live"><i class="dot"></i><span id="live"></span></div>
     <p class="caption">${t('hero')}</p><p class="counter" id="counter"></p>
-    <p class="hero-foot">${t('running')} <strong id="hero-rate"></strong></p>
-  </section>
-  <div class="rates">${['second','minute','hour','daily'].map((k,i)=>`<div class="card"><span class="chip">${icon(['bolt','clock','clock','calendar'][i])}</span><div class="label">${t(k)}</div><strong class="value" id="rate-${i}"></strong></div>`).join('')}</div>
+    ${mini?'':`<p class="hero-foot">${t('running')} <strong id="hero-rate"></strong></p>`}
+  </section>${rateCards()}`
+  if(mini) return counter
+  return `${mobileDashboard()}<div class="desktop-dashboard">${counter}
   <div id="standard">${heading('snapshot')}<div class="three">
    ${['today','monthly','yearly'].map((k,i)=>`<div class="card"><div class="label">${t(k)} · ${t('forecast')}</div><strong class="value" id="estimate-${i}"></strong><div class="foot muted"><span>${t('history')}</span><strong id="actual-${i}"></strong></div></div>`).join('')}
   </div>
@@ -321,7 +325,7 @@ document.addEventListener('click',async e=>{
   if(kind==='mini') {
     const url=new URL(location.href)
     url.searchParams.set('mini','1')
-    if(!window.open(url.href,'moneyGrowMini','popup,width=440,height=390')) location.href=url.href
+    if(!window.open(url.href,'moneyGrowMini','popup,width=460,height=290,resizable=yes')) location.href=url.href
   }
   if(kind==='full') {
     const url=new URL(location.href)
