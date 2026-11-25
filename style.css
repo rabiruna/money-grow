@@ -5,3 +5,43 @@
 @media(max-width:680px){.shell{display:block}.rail{height:auto;position:sticky;z-index:1;display:block;padding:10px 13px 6px;border-right:0;border-bottom:1px solid var(--line)}.brand{padding:0;font-size:18px}.brand-icon{width:32px;height:32px}nav{display:flex;overflow:auto;gap:4px;margin-top:7px}nav button{flex:1;justify-content:center;padding:6px;white-space:nowrap;font-size:13px;min-height:37px}nav svg{width:16px;height:16px}#rail-bottom{display:none}main{padding:19px 13px 30px}.top{margin-bottom:15px}.wide-text{display:none}.hero{padding:20px 17px;min-height:217px}.hero canvas{width:90%;opacity:.48}.rates{grid-template-columns:repeat(2,1fr)}.two{grid-template-columns:1fr}.rates,.three,.two{gap:8px}.card{padding:12px}.three .card .value{font-size:15px}.top #today-date{font-size:12px}.top button{padding:7px 9px}}
 @media(max-width:360px){nav button svg{display:none}.fields{grid-template-columns:1fr}.three{grid-template-columns:1fr}.row{align-items:flex-start}}
 [hidden]{display:none!important}fieldset{border:1px solid var(--line);border-radius:9px;margin:0;padding:8px 12px 12px;min-width:0}legend{font-size:14px;font-weight:650}
+
+.compact-panel{display:none}
+@media(max-width:680px){
+  body.compact-dashboard{background:light-dark(#f5f6f7,#101318)}
+  .compact-dashboard .rail,.compact-dashboard .top,.compact-dashboard .desktop-dashboard{display:none}
+  .compact-dashboard main{padding:12px;max-width:none}
+  .compact-dashboard .compact-panel{display:block;color-scheme:dark;background:#131921;color:#dde5ee;border-radius:19px;padding:17px 16px 19px;font-variant-numeric:tabular-nums}
+  .compact-header,.compact-header>div,.compact-row,.compact-status{display:flex;align-items:center;gap:8px}
+  .compact-header,.compact-row{justify-content:space-between}
+  .compact-brand{color:#a5b5c8;font-size:.87rem;font-weight:650;white-space:nowrap;letter-spacing:.025em}
+  .compact-brand svg{width:17px;height:17px;margin-right:4px;color:#91d9b0}
+  .compact-status{font-size:.8rem;color:#9fadc0;white-space:nowrap}
+  .compact-status i{width:8px;height:8px;border-radius:50%;background:currentColor}
+  .compact-status.earning{color:#92dfb8}
+  .compact-header button{color:#aebed1;background:transparent;border-color:transparent;padding:7px;min-width:44px;min-height:44px}
+  .compact-total{text-align:center;padding:16px 0 12px}
+  .compact-total p,.compact-rates span,.compact-work .compact-row>span{color:#bac5d1;font-size:.92rem}
+  .compact-total strong{display:block;margin-top:9px;color:#87f6ab;font-size:clamp(1.85rem,8vw,3rem);letter-spacing:-.035em;overflow-wrap:anywhere}
+  .compact-rates{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;text-align:center;padding-bottom:19px}
+  .compact-rates strong{display:block;margin-top:6px;font-size:clamp(.8rem,3.6vw,1.05rem);overflow-wrap:anywhere}
+  .compact-sources,.compact-work{border-top:1px solid #354050;padding:12px 0}
+  .compact-row{padding:7px 0;min-height:37px}
+  .compact-row>span{min-width:0;overflow-wrap:anywhere;color:#c1cedc}
+  .compact-income{text-align:right;overflow-wrap:anywhere;max-width:60%;color:#c1cedc}
+  .compact-income.salary{color:#87f6ab}
+  .compact-income.deposit,.compact-income.saving{color:#93beff}
+  .compact-income.mmf{color:#eac781}
+  .compact-income.zero{color:#a5b5c8}
+  .compact-sources button{background:transparent;color:#9eeac0;border-color:#3b655a;min-height:44px}
+  .compact-work{padding-bottom:0}
+  .compact-work progress{height:6px;background:#354050;margin-top:9px}
+  .compact-work progress::-webkit-progress-bar{background:#354050}
+  .compact-work progress::-webkit-progress-value{background:#91dfb6}
+  .compact-work progress::-moz-progress-bar{background:#91dfb6}
+}
+@media(max-width:680px){
+  .compact-picker{display:inline-flex;margin-top:11px;max-width:100%}
+  .compact-picker select{max-width:100%;min-height:44px;width:auto;background:#1e2733;color:#dbe6ef;border-color:#354050;padding:6px 9px;font-size:1rem}
+  .compact-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+}

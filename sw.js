@@ -1,9 +1,9 @@
 const prefix = 'money-grow:'+self.registration.scope+':'
-const cacheName = prefix+'v1'
+const cacheName = prefix+'v2'
 const files = ['./','./index.html','./style.css','./app.mjs','./engine.mjs','./storage.mjs','./labels.mjs','./manifest.webmanifest','./icon-192.png','./icon-512.png']
 
 self.addEventListener('install', event => {
-  event.waitUntil(caches.open(cacheName).then(cache=>cache.addAll(files.map(path=>new Request(path,{cache:'reload'})))))
+  event.waitUntil(caches.open(cacheName).then(cache=>cache.addAll(files.map(path=>new Request(path,{cache:'reload'})))).then(()=>self.skipWaiting()))
 })
 self.addEventListener('activate', event => {
   event.waitUntil((async()=>{

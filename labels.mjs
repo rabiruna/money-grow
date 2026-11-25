@@ -1,4 +1,6 @@
 const entries = {
+ compactHome:['모바일 홈 화면','モバイルホーム画面','Mobile home'],compactTitle:['금액 위에 표시할 제목','金額の見出し','Title above the amount'],compactPeriod:['집계 기간','集計期間','Time period'],compactAll:['전체 수익','全収益','All income'],compactMonth:['이번 달 예상 누적 수익','今月の推定累計収益','Estimated earnings this month'],compactYear:['올해 예상 누적 수익','今年の推定累計収益','Estimated earnings this year'],
+ compactLive:['적립 중','計上中','Accruing'],compactIdle:['적립 대기','計上待機中','Paused'],
  dashboard:['대시보드','ダッシュボード','Dashboard'],sources:['수익원','収益源','Income sources'],history:['실제 수익','実績収益','Recorded income'],settings:['설정','設定','Settings'],
  local:['이 기기에 저장됨','この端末に保存','Stored on this device'],add:['수익원 추가','収益源を追加','Add income source'],mini:['미니 화면','ミニ画面','Mini view'],full:['전체 화면','全体画面','Full dashboard'],theme:['테마 전환','テーマ切替','Toggle theme'],
  today:['오늘','今日','Today'],monthly:['이번 달','今月','This month'],yearly:['올해','今年','This year'],hero:['오늘의 예상 누적 수익','今日の推定累計収益','Estimated earnings today'],live:['실시간 적립 중','リアルタイム計上中','Accruing live'],idle:['적립 대기 중','計上待機中','Accrual paused'],second:['초당','毎秒','Per second'],minute:['분당','毎分','Per minute'],hour:['시간당','毎時','Per hour'],daily:['일간 예상','本日の見込み','Projected today'],running:['현재 적립 속도','現在の計上速度','Current earning rate'],

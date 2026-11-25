@@ -55,6 +55,7 @@ const total=(from,to)=>model.total(state.sources,from,to)
 const sourceName=s=>esc(s.name||t(s.type))
 let nextSample=0, sample=null, chartDay=''
 function render() {
+  document.body.classList.toggle('compact-dashboard',page==='dashboard'&&!mini)
   document.documentElement.lang=state.lang
   document.documentElement.dataset.theme=state.theme
   document.querySelector('meta[name=theme-color]').content=state.theme==='dark'?'#101727':'#f4f6fb'
@@ -77,8 +78,26 @@ function render() {
   chartDay=''
   update(Date.now())
 }
+function mobileDashboard() {
+  if(mini) return ''
+  const selected=state.sources.find(s=>s.id===state.home?.source)
+  const shown=selected?[selected]:state.sources
+  const rows=shown.map(s=>`<div class="compact-row"><span>${sourceName(s)}</span><strong class="compact-income ${s.type}" id="compact-source-${s.id}"></strong></div>`).join('')
+  return `<section class="compact-panel" aria-label="${t('dashboard')}">
+    <header class="compact-header"><span class="compact-brand">${icon('sources')} MONEY GROW</span>
+      <div><span class="compact-status" id="compact-status"><i></i><span id="compact-live"></span></span>${btn('settings','page:settings','settings')}</div>
+    </header>
+    <div class="compact-total"><p>${esc(state.home?.title || t(({month:'compactMonth',year:'compactYear'})[state.home?.period]||'hero'))}</p><strong id="compact-counter"></strong>
+      <label class="compact-picker"><span class="compact-sr">${t('sources')}</span><select id="compact-picker"><option value="">${t('compactAll')}</option>${state.sources.map(s=>`<option value="${s.id}" ${s===selected?'selected':''}>${sourceName(s)}</option>`).join('')}</select></label></div>
+    <div class="compact-rates">${['second','minute','hour'].map((k,i)=>`<div><span>${t(k)}</span><strong id="compact-rate-${i}"></strong></div>`).join('')}</div>
+    <section class="compact-sources" aria-label="${t('sources')}">${rows||btn('add','source')}</section>
+    <section class="compact-work" ${selected?.timing==='always'?'hidden':''}><div class="compact-row"><span id="compact-work-label"></span><strong id="compact-time"></strong></div>
+      <progress id="compact-progress" max="1" value="0" aria-label="${t('work')}" hidden></progress>
+    </section>
+  </section>`
+}
 function dashboard() {
-  return `<section class="hero">
+  return `${mobileDashboard()}<div class="desktop-dashboard"><section class="hero">
     <canvas id="chart" aria-hidden="true"></canvas>
     <div class="live"><i class="dot"></i><span id="live"></span></div>
     <p class="caption">${t('hero')}</p><p class="counter" id="counter"></p>
@@ -100,7 +119,7 @@ function dashboard() {
     <div class="foot">${btn('edit','goal')}</div></section>
   </div>
   <div class="heading"><h2>${t('sources')}</h2>${btn('manage','page:sources')}</div>
-  <section class="card">${sourceRows(false)}</section></div>`
+  <section class="card">${sourceRows(false)}</section></div></div>`
 }
 function sourceRows(editable) {
   if(!state.sources.length) return `<p class="empty">${t('empty')}</p>`
@@ -112,7 +131,7 @@ function history() {
   return `<section class="card"><div class="card-head"><p class="muted">${t('recordHelp')}</p>${btn('record','receipt','plus','class="primary"')}</div>
   ${rows.length?rows.map(r=>`<div class="row"><div><span class="row-name">${esc(r.name)||t('history')}</span><span class="muted">${r.date} · ${format(r.amount)}</span></div><div class="row-actions">${btn('edit','receipt:'+r.id)}${btn('remove','delete-receipt:'+r.id,'','class="danger"')}</div></div>`).join(''):`<p class="empty">${t('empty')}</p>`}</section>`
 }
-const settings=()=>`<div class="stack"><section class="card"><div class="card-head"><h2>${t('appearance')}</h2>${btn('edit','appearance')}</div><div class="foot muted">${state.currency} · ${t(state.theme)} · ${{ko:'한국어',ja:'日本語',en:'English'}[state.lang]}</div></section>
+const settings=()=>`<div class="stack"><section class="card"><div class="card-head"><h2>${t('compactHome')}</h2>${btn('edit','compact-home')}</div></section><section class="card"><div class="card-head"><h2>${t('appearance')}</h2>${btn('edit','appearance')}</div><div class="foot muted">${state.currency} · ${t(state.theme)} · ${{ko:'한국어',ja:'日本語',en:'English'}[state.lang]}</div></section>
 <section class="card"><div class="card-head"><h2>${t('schedule')}</h2>${btn('edit','schedule')}</div><div class="foot muted">${state.schedule.in}–${state.schedule.out} · ${t('payday')} ${shortDate(payday(new Date(),state.schedule.payday))}</div></section>
 <section class="card"><h2>${t('backup')}</h2><div class="foot">${btn('download','backup')}${btn('restore','restore')}<input type="file" accept=".json,application/json" id="backup-file" hidden></div></section>
 <section class="card"><h2>${t('install')}</h2><div class="foot"><p class="muted">${t('installHelp')}</p>${pendingInstall?btn('install','install'):''}</div></section></div>`
@@ -125,7 +144,28 @@ function update(ms) {
     const work=windows(today,state.schedule), end=work.at(-1)?.[1] ?? 0
     const remaining=Math.max(0,end-ms)
     const rate=total(now,new Date(ms+1))*1000
-    sample={ms,rate,today,value:total(today,now)}
+    let compactRate=0, compactValue=0
+    if($('compact-counter')) {
+      const selected=state.sources.find(s=>s.id===state.home?.source)
+      const measure=(a,b)=>selected?model.sourceTotal(selected,a,b):total(a,b)
+      const start=state.home?.period==='month'?periods[0]:state.home?.period==='year'?periods[1]:today
+      compactRate=measure(now,new Date(ms+1))*1000
+      compactValue=measure(start,now)
+      put('compact-live',t(compactRate!==0?'compactLive':'compactIdle'))
+      $('compact-status').classList.toggle('earning',compactRate!==0)
+      ;[compactRate,compactRate*60,compactRate*3600].forEach((v,i)=>put('compact-rate-'+i,(i===2?format:precise)(v)))
+      for(const src of selected?[selected]:state.sources) {
+        const value=model.sourceTotal(src,start,now)
+        put('compact-source-'+src.id,(value>0?'+':'')+(value===0?format(0):precise(value)))
+        $('compact-source-'+src.id).classList.toggle('zero',value===0)
+      }
+      const progress=$('compact-progress')
+      const scheduled=work.reduce((sum,[a,b])=>sum+b-a,0)
+      const worked=work.reduce((sum,[a,b])=>sum+Math.max(0,Math.min(ms,b)-a),0)
+      progress.hidden=!scheduled
+      progress.value=scheduled?worked/scheduled:0
+    }
+    sample={ms,rate,today,compactRate,compactValue,value:total(today,now)}
     nextSample=ms+400
     put('live',t(rate!==0?'live':'idle'))
     put('hero-rate',rateFormat(rate)+' / '+t('second'))
@@ -138,13 +178,18 @@ function update(ms) {
     const time=[Math.floor(seconds/3600),Math.floor(seconds/60)%60,seconds%60].map(x=>String(x).padStart(2,'0')).join(':')
     put('work-label',t(remaining?'until':'off'))
     put('time-left',remaining?time:'')
+    put('compact-work-label',t(remaining?'until':'off'))
+    put('compact-time',remaining?time:'')
     put('work-money',format(remaining?total(now,new Date(end)):0))
     put('payday',shortDate(payday(now,state.schedule.payday)))
     put('today-date',fullDate(now))
     if(chartDay!==iso(today)) { chartDay=iso(today); drawChart() }
   }
   const value=sample.value+sample.rate*(ms-sample.ms)/1000
-  put('counter',precise(Math.abs(value)<0.005?0:value))
+  const display=precise(Math.abs(value)<0.005?0:value)
+  put('counter',display)
+  const compact=sample.compactValue+sample.compactRate*(ms-sample.ms)/1000
+  put('compact-counter',precise(Math.abs(compact)<0.005?0:compact))
 }
 function drawChart() {
   const canvas=$('chart')
@@ -249,6 +294,11 @@ function backup() {
   setTimeout(()=>URL.revokeObjectURL(url),30000)
 }
 root.addEventListener('change',async e=>{
+  if(e.target.id==='compact-picker') {
+    const error=commit({...state,home:{period:'today',title:'',...state.home,source:e.target.value}})
+    if(error)notify(error)
+    return
+  }
   if(e.target.id!=='backup-file'||!e.target.files[0]) return
   const file=e.target.files[0]
   e.target.value=''
@@ -283,6 +333,15 @@ document.addEventListener('click',async e=>{
   if(kind==='cancel') dialog.close()
   if(kind==='schedule') scheduleForm()
   if(kind==='appearance') appearanceForm()
+  if(kind==='compact-home') {
+    const home=state.home??{source:'',title:'',period:'today'}
+    const options={'':t('compactAll')}
+    for(const source of state.sources) options[source.id]=sourceName(source)
+    form('compactHome',input('compactTitle','title',home.title,'maxlength="60"')
+      +select('sources','source',home.source,options)
+      +select('compactPeriod','period',home.period,{today:t('today'),month:t('monthly'),year:t('yearly')}),
+      data=>({...state,home:Object.fromEntries(data)}))
+  }
   if(kind==='goal') form('goal',numeric('assets','assets',state.assets,'any','min="0"')+numeric('goal','goal',state.goal,'any','min="1"'),data=>({...state,assets:num(data,'assets'),goal:num(data,'goal')}))
   if(kind==='backup') backup()
   if(kind==='restore') $('backup-file').click()
