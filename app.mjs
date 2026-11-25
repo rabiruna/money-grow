@@ -78,6 +78,12 @@ function render() {
   chartDay=''
   update(Date.now())
 }
+function maturity(source) {
+  if(!source || !['deposit','saving'].includes(source.type) || !['simple','compound'].includes(source.method)) return ''
+  if(!source.end) return `<p class="muted maturity-help">${t('maturityHelp')}</p>`
+  const projection=model.sourceTotal(source,date(source.start),nextDay(date(source.end)))
+  return `<dl class="maturity-summary"><div><dt>${t('maturityDate')}</dt><dd><time datetime="${source.end}">${fullDate(date(source.end))}</time></dd></div><div><dt>${t('maturityInterest')}</dt><dd>${precise(projection)}</dd></div></dl>`
+}
 const homePeriods=()=>({auto:t('compactAuto'),today:t('today'),month:t('monthly'),year:t('yearly'),since:t('compactSince')})
 function homePeriod(source) {
   const configured=state.home?.period
@@ -91,12 +97,13 @@ function mobileDashboard() {
   const shown=selected?[selected]:state.sources
   const rows=shown.map(s=>`<div class="compact-row"><span>${sourceName(s)}</span><strong class="compact-income ${s.type}" id="compact-source-${s.id}"></strong></div>`).join('')
   return `<section class="compact-panel" aria-label="${t('dashboard')}">
-    <header class="compact-header"><span class="compact-brand">${icon('sources')} MONEY GROW</span>
+    <header class="compact-header"><span class="compact-brand"><img src="./icon-192.png" width="22" height="22" alt=""> MONEY GROW</span>
       <div><span class="compact-status" id="compact-status"><i></i><span id="compact-live"></span></span>${btn('settings','page:settings','settings')}</div>
     </header>
     <div class="compact-total"><p>${esc(state.home?.title || t(({month:'compactMonth',year:'compactYear',since:'compactLifetime'})[period]||'hero'))}</p><strong id="compact-counter"></strong>
       <label class="compact-picker"><span class="compact-sr">${t('sources')}</span><select id="compact-picker"><option value="">${t('compactAll')}</option>${state.sources.map(s=>`<option value="${s.id}" ${s===selected?'selected':''}>${sourceName(s)}</option>`).join('')}</select></label>
       <label class="compact-picker"><span class="compact-sr">${t('compactPeriod')}</span><select id="compact-period">${Object.entries(homePeriods()).map(([value,label])=>`<option value="${value}" ${value===(state.home?.period??'auto')?'selected':''}>${label}</option>`).join('')}</select></label></div>
+    ${maturity(selected)}
     <div class="compact-rates">${['second','minute','hour'].map((k,i)=>`<div><span>${t(k)}</span><strong id="compact-rate-${i}"></strong></div>`).join('')}</div>
     <section class="compact-sources" aria-label="${t('sources')}">${rows||btn('add','source')}</section>
     <section class="compact-work" ${selected?.timing==='always'?'hidden':''}><div class="compact-row"><span id="compact-work-label"></span><strong id="compact-time"></strong></div>
@@ -135,7 +142,7 @@ function dashboard() {
 }
 function sourceRows(editable) {
   if(!state.sources.length) return `<p class="empty">${t('empty')}</p>`
-  return state.sources.map(s=>`<div class="row"><div><span class="row-name">${sourceName(s)}</span><span class="muted">${t(methods[s.method])} · ${s.method==='simple'||s.method==='compound'?percentage(s.rate/100):format(s.amount)}</span></div><div class="row-actions">${editable?btn('edit','source:'+s.id)+btn('remove','delete-source:'+s.id,'','class="danger"'):`<span class="badge">${t(s.timing==='work'?'worktime':'always')}</span>`}</div></div>`).join('')
+  return state.sources.map(s=>`<div class="row"><div><span class="row-name">${sourceName(s)}</span><span class="muted">${t(methods[s.method])} · ${s.method==='simple'||s.method==='compound'?percentage(s.rate/100):format(s.amount)}</span></div>${editable?maturity(s):''}<div class="row-actions">${editable?btn('edit','source:'+s.id)+btn('remove','delete-source:'+s.id,'','class="danger"'):`<span class="badge">${t(s.timing==='work'?'worktime':'always')}</span>`}</div></div>`).join('')
 }
 const sources=()=>`<section class="card">${sourceRows(true)}</section>`
 function history() {
@@ -265,6 +272,8 @@ function sourceForm(id) {
   const defaultsByType={salary:['monthly','work'],deposit:['simple','always'],saving:['simple','always'],mmf:['compound','always'],other:['monthly','always']}
   function refresh() {
     const interest=['simple','compound'].includes(f.elements.method.value)
+    const endLabel=interest&&['deposit','saving'].includes(f.elements.type.value)?'maturityDate':'end'
+    f.elements.end.closest('label').firstChild.textContent=t(endLabel)
     const visible={amount:!interest,principal:interest,payment:interest&&f.elements.type.value==='saving',rate:interest}
     for(const [name,show] of Object.entries(visible)) {
       f.elements[name].closest('label').hidden=!show

@@ -115,3 +115,21 @@
   .schedule-date-entry button{overflow-wrap:anywhere}
   dialog .form-actions{min-inline-size:0}
 }
+
+.brand-icon img,.compact-brand img{display:block;border-radius:inherit}
+.maturity-summary{display:grid;gap:6px;margin:8px 0 0;font-size:.875rem;font-variant-numeric:tabular-nums}
+.maturity-summary>div{display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap}
+.maturity-summary dt{color:var(--muted)}
+.maturity-summary dd{margin:0;font-weight:650;overflow-wrap:anywhere}
+.maturity-help{margin-top:8px}
+.row>.maturity-summary{min-width:0;margin:0}
+.row:has(>.maturity-summary){flex-wrap:wrap}
+@media(max-width:680px){
+  .compact-brand{display:inline-flex;align-items:center;gap:6px}
+  .compact-brand img{border-radius:6px}
+  .compact-panel .maturity-summary,.compact-panel .maturity-help{margin:0 0 12px;padding:10px 11px;background:#1e2733;border-radius:8px;color:#c1cedc}
+  .compact-panel .maturity-summary dt{color:#c1cedc}
+  .compact-panel .maturity-summary dd:last-child{color:#e2eaf1}
+}
+.brand-icon img{inline-size:100%;block-size:auto}
+.row:has(>.maturity-help){flex-wrap:wrap}
