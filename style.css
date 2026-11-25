@@ -102,3 +102,16 @@
   .compact-total .compact-picker{max-width:calc(50% - 4px)}
   .compact-total .compact-picker + .compact-picker{margin-inline-start:4px}
 }
+
+@media(max-width:680px){
+  html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+  button,select{touch-action:manipulation}
+  input:not([type=checkbox]),select,textarea{font-size:max(16px,1rem);max-inline-size:100%}
+  .top>div,.compact-header>div,.card-head>*,.row-actions{min-inline-size:0}
+  .top>div,.card-head>*,.row-actions button{overflow-wrap:anywhere}
+  .compact-header{flex-wrap:wrap}
+  .compact-picker select{min-inline-size:0;text-overflow:ellipsis}
+  .schedule-date-entry{grid-template-columns:minmax(0,1fr) fit-content(45%)}
+  .schedule-date-entry button{overflow-wrap:anywhere}
+  dialog .form-actions{min-inline-size:0}
+}
