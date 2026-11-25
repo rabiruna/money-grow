@@ -79,3 +79,22 @@
   .mini .rates .card{padding-block:3px}
   .mini .rates .value{margin-top:2px}
 }
+
+.schedule-dialog .fields{grid-template-columns:minmax(0,1fr)}
+.schedule-group{min-inline-size:0;padding:10px}
+.schedule-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.schedule-dialog .checks{gap:6px}
+.schedule-dialog .checks label{min-height:44px;padding:5px 9px;border:1px solid var(--line);border-radius:8px}
+.schedule-dialog .checks label:has(:checked){background:var(--soft);color:var(--accent);border-color:var(--accent)}
+.schedule-date-entry{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:end;gap:8px}
+.schedule-date-entry button:disabled{opacity:.6;cursor:default}
+.schedule-date-list{list-style:none;padding:0;margin:8px 0 0}
+.schedule-date-list li{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:3px 0}
+.schedule-dialog input:not([type=checkbox]),.schedule-date-entry button,.schedule-date-list button{min-height:44px}
+.schedule-dialog input[type=time],.schedule-dialog input[type=date]{display:block;inline-size:100%;min-inline-size:0;max-inline-size:100%}
+@media(max-width:680px){
+  dialog{padding:14px}
+  dialog .fields,.schedule-grid{grid-template-columns:minmax(0,1fr)}
+  .schedule-dialog{overflow:auto}
+  .schedule-dialog .form-actions{position:sticky;bottom:-14px;background:var(--panel);padding-block:8px;margin-top:-8px;border-top:1px solid var(--line)}
+}

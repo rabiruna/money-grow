@@ -1,6 +1,6 @@
 import {calendar,date,day,defaults,iso,nextDay,payday,windows} from './engine.mjs'
 import {translate} from './labels.mjs'
-import {currencies,methods,types,valid} from './storage.mjs'
+import {currencies,methods,types,valid,validDate} from './storage.mjs'
 
 const $=id=>document.getElementById(id)
 const root=$('screen'), dialog=$('dialog'), key='money-grow:v1'
@@ -221,12 +221,12 @@ const dateInput=(k,name,value,extra='')=>input(k,name,value,`type="date" min="19
 function select(k,name,value,options) {
   return `<label>${t(k)}<select name="${name}">${Object.entries(options).map(([v,label])=>`<option value="${v}" ${v===value?'selected':''}>${label}</option>`).join('')}</select></label>`
 }
-const textArea=(k,entries)=>`<label class="wide">${t(k)}<textarea name="${k}" rows="3">${esc(entries.join('\n'))}</textarea></label>`
 const num=(data,k)=>Number(data.get(k))
 const uid=()=>globalThis.crypto?.randomUUID?.() ?? Date.now().toString(36)+'-'+Math.random().toString(36).slice(2)
 const upsert=(rows,entry)=>rows.some(x=>x.id===entry.id)?rows.map(x=>x.id===entry.id?entry:x):[...rows,entry]
 function form(title,fields,save,hint='') {
-  dialog.innerHTML=`<form><h2 id="dialog-title">${t(title)}</h2>${hint?'<p class="muted">'+t(hint)+'</p>':''}<div class="fields">${fields}</div><div class="error" role="alert"></div><div class="form-actions">${btn('cancel','cancel')}<button class="primary">${t('save')}</button></div></form>`
+  dialog.classList.toggle('schedule-dialog',title==='schedule')
+  dialog.innerHTML=`<form><h2 id="dialog-title" ${title==='schedule'?'tabindex="-1" autofocus':''}>${t(title)}</h2>${hint?'<p class="muted">'+t(hint)+'</p>':''}<div class="fields">${fields}</div><div class="error" role="alert"></div><div class="form-actions">${btn('cancel','cancel')}<button class="primary">${t('save')}</button></div></form>`
   dialog.setAttribute('aria-labelledby','dialog-title')
   const f=dialog.querySelector('form')
   f.onsubmit=event=>{
@@ -274,14 +274,53 @@ function receiptForm(id) {
     data=>({...state,receipts:upsert(state.receipts,{id:old?.id??uid(),name:data.get('name'),date:data.get('date'),amount:num(data,'amount')})}))
 }
 function scheduleForm() {
-  const s=state.schedule, time=k=>input(k,k,s[k],'type="time" required')
-  const weekdays=Array.from({length:7},(_,i)=>`<label><input type="checkbox" name="weekdays" value="${i}" ${s.weekdays.includes(i)?'checked':''}>${new Intl.DateTimeFormat(locale(),{weekday:'short'}).format(new Date(2024,0,7+i))}</label>`).join('')
-  form('schedule',time('in')+time('out')+time('lunch')+numeric('minutes','minutes',s.minutes,1,'min="0" max="1440"')
-    +numeric('payDayInput','payday',s.payday,1,'min="1" max="31"')+numeric('period','period',s.period,1,'min="1" max="31"')
-    +`<fieldset class="wide"><legend>${t('weekdays')}</legend><div class="checks">${weekdays}</div></fieldset>`
-    +textArea('holidays',s.holidays)+textArea('leave',s.leave),
-    data=>({...state,schedule:{...Object.fromEntries(data),minutes:num(data,'minutes'),payday:num(data,'payday'),period:num(data,'period'),
-      weekdays:data.getAll('weekdays').map(Number),holidays:data.get('holidays').split(/\s+/).filter(Boolean),leave:data.get('leave').split(/\s+/).filter(Boolean)}}))
+  const s=state.schedule
+  const time=k=>input(k,k,s[k],'type="time" required')
+  const weekdays=Array.from({length:7},(_,i)=>`<label><input type="checkbox" name="weekdays" value="${i}" ${s.weekdays.includes(i)?'checked':''}><span>${new Intl.DateTimeFormat(locale(),{weekday:'short'}).format(new Date(2024,0,7+i))}</span></label>`).join('')
+  const group=(label,fields)=>`<fieldset class="schedule-group"><legend>${t(label)}</legend><div class="schedule-grid">${fields}</div></fieldset>`
+  const dates={holidays:[...new Set(s.holidays)].sort(),leave:[...new Set(s.leave)].sort()}
+  const picker=(key,label)=>`<fieldset class="schedule-group" data-date-group="${key}"><legend>${t(label)}</legend>
+    <div class="schedule-date-entry">${dateInput('chooseDate',key+'Date','')}<button type="button" data-add-date>${t('addDate')}</button></div>
+    <ul class="schedule-date-list"></ul></fieldset>`
+  const f=form('schedule',
+    group('work',time('in')+time('out')+time('lunch')+numeric('minutes','minutes',s.minutes,1,'min="0" max="1440"'))
+    +`<fieldset class="schedule-group"><legend>${t('weekdays')}</legend><div class="checks">${weekdays}</div></fieldset>`
+    +group('payroll',numeric('payDayInput','payday',s.payday,1,'min="1" max="31"')+numeric('period','period',s.period,1,'min="1" max="31"'))
+    +picker('holidays','holidayDates')+picker('leave','leaveDates'),
+    data=>({...state,schedule:{...s,in:data.get('in'),out:data.get('out'),lunch:data.get('lunch'),
+      minutes:num(data,'minutes'),payday:num(data,'payday'),period:num(data,'period'),
+      weekdays:data.getAll('weekdays').map(Number),...dates}}))
+  for(const group of f.querySelectorAll('[data-date-group]')) {
+    const key=group.dataset.dateGroup
+    const field=group.querySelector('input')
+    const add=group.querySelector('[data-add-date]')
+    const list=group.querySelector('ul')
+    function showDates() {
+      list.hidden=dates[key].length===0
+      list.innerHTML=dates[key].map(d=>`<li><time datetime="${d}">${d}</time><button type="button" data-remove-date="${d}" aria-label="${d} ${t('remove')}">${t('remove')}</button></li>`).join('')
+    }
+    function updateAdd() {add.disabled=!validDate(field.value)||dates[key].includes(field.value)}
+    field.addEventListener('input',updateAdd)
+    field.addEventListener('change',updateAdd)
+    add.addEventListener('click',()=>{
+      if(!validDate(field.value)||dates[key].includes(field.value)) return
+      dates[key].push(field.value)
+      dates[key].sort()
+      field.value=''
+      showDates()
+      updateAdd()
+    })
+    list.addEventListener('click',e=>{
+      const value=e.target.closest('[data-remove-date]')?.dataset.removeDate
+      if(!value) return
+      dates[key]=dates[key].filter(d=>d!==value)
+      showDates()
+      updateAdd()
+      field.focus()
+    })
+    showDates()
+    updateAdd()
+  }
 }
 function appearanceForm() {
   form('appearance',select('language','lang',state.lang,{ko:'한국어',ja:'日本語',en:'English'})
