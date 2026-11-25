@@ -78,17 +78,25 @@ function render() {
   chartDay=''
   update(Date.now())
 }
+const homePeriods=()=>({auto:t('compactAuto'),today:t('today'),month:t('monthly'),year:t('yearly'),since:t('compactSince')})
+function homePeriod(source) {
+  const configured=state.home?.period
+  if(configured && configured!=='auto') return configured
+  return ['deposit','saving','mmf'].includes(source?.type)?'since':'today'
+}
 function mobileDashboard() {
   if(mini) return ''
   const selected=state.sources.find(s=>s.id===state.home?.source)
+  const period=homePeriod(selected)
   const shown=selected?[selected]:state.sources
   const rows=shown.map(s=>`<div class="compact-row"><span>${sourceName(s)}</span><strong class="compact-income ${s.type}" id="compact-source-${s.id}"></strong></div>`).join('')
   return `<section class="compact-panel" aria-label="${t('dashboard')}">
     <header class="compact-header"><span class="compact-brand">${icon('sources')} MONEY GROW</span>
       <div><span class="compact-status" id="compact-status"><i></i><span id="compact-live"></span></span>${btn('settings','page:settings','settings')}</div>
     </header>
-    <div class="compact-total"><p>${esc(state.home?.title || t(({month:'compactMonth',year:'compactYear'})[state.home?.period]||'hero'))}</p><strong id="compact-counter"></strong>
-      <label class="compact-picker"><span class="compact-sr">${t('sources')}</span><select id="compact-picker"><option value="">${t('compactAll')}</option>${state.sources.map(s=>`<option value="${s.id}" ${s===selected?'selected':''}>${sourceName(s)}</option>`).join('')}</select></label></div>
+    <div class="compact-total"><p>${esc(state.home?.title || t(({month:'compactMonth',year:'compactYear',since:'compactLifetime'})[period]||'hero'))}</p><strong id="compact-counter"></strong>
+      <label class="compact-picker"><span class="compact-sr">${t('sources')}</span><select id="compact-picker"><option value="">${t('compactAll')}</option>${state.sources.map(s=>`<option value="${s.id}" ${s===selected?'selected':''}>${sourceName(s)}</option>`).join('')}</select></label>
+      <label class="compact-picker"><span class="compact-sr">${t('compactPeriod')}</span><select id="compact-period">${Object.entries(homePeriods()).map(([value,label])=>`<option value="${value}" ${value===(state.home?.period??'auto')?'selected':''}>${label}</option>`).join('')}</select></label></div>
     <div class="compact-rates">${['second','minute','hour'].map((k,i)=>`<div><span>${t(k)}</span><strong id="compact-rate-${i}"></strong></div>`).join('')}</div>
     <section class="compact-sources" aria-label="${t('sources')}">${rows||btn('add','source')}</section>
     <section class="compact-work" ${selected?.timing==='always'?'hidden':''}><div class="compact-row"><span id="compact-work-label"></span><strong id="compact-time"></strong></div>
@@ -152,7 +160,10 @@ function update(ms) {
     if($('compact-counter')) {
       const selected=state.sources.find(s=>s.id===state.home?.source)
       const measure=(a,b)=>selected?model.sourceTotal(selected,a,b):total(a,b)
-      const start=state.home?.period==='month'?periods[0]:state.home?.period==='year'?periods[1]:today
+      const period=homePeriod(selected)
+      const start=period==='since'
+        ? new Date((selected?[selected]:state.sources).reduce((earliest,src)=>Math.min(earliest,+date(src.start)),ms))
+        : period==='month'?periods[0]:period==='year'?periods[1]:today
       compactRate=measure(now,new Date(ms+1))*1000
       compactValue=measure(start,now)
       put('compact-live',t(compactRate!==0?'compactLive':'compactIdle'))
@@ -337,8 +348,9 @@ function backup() {
   setTimeout(()=>URL.revokeObjectURL(url),30000)
 }
 root.addEventListener('change',async e=>{
-  if(e.target.id==='compact-picker') {
-    const error=commit({...state,home:{period:'today',title:'',...state.home,source:e.target.value}})
+  const homeField={'compact-picker':'source','compact-period':'period'}[e.target.id]
+  if(homeField) {
+    const error=commit({...state,home:{source:'',period:'auto',title:'',...state.home,[homeField]:e.target.value}})
     if(error)notify(error)
     return
   }
@@ -377,12 +389,12 @@ document.addEventListener('click',async e=>{
   if(kind==='schedule') scheduleForm()
   if(kind==='appearance') appearanceForm()
   if(kind==='compact-home') {
-    const home=state.home??{source:'',title:'',period:'today'}
+    const home=state.home??{source:'',title:'',period:'auto'}
     const options={'':t('compactAll')}
     for(const source of state.sources) options[source.id]=sourceName(source)
     form('compactHome',input('compactTitle','title',home.title,'maxlength="60"')
       +select('sources','source',home.source,options)
-      +select('compactPeriod','period',home.period,{today:t('today'),month:t('monthly'),year:t('yearly')}),
+      +select('compactPeriod','period',home.period,homePeriods()),
       data=>({...state,home:Object.fromEntries(data)}))
   }
   if(kind==='goal') form('goal',numeric('assets','assets',state.assets,'any','min="0"')+numeric('goal','goal',state.goal,'any','min="1"'),data=>({...state,assets:num(data,'assets'),goal:num(data,'goal')}))

@@ -98,3 +98,7 @@
   .schedule-dialog{overflow:auto}
   .schedule-dialog .form-actions{position:sticky;bottom:-14px;background:var(--panel);padding-block:8px;margin-top:-8px;border-top:1px solid var(--line)}
 }
+@media(max-width:680px){
+  .compact-total .compact-picker{max-width:calc(50% - 4px)}
+  .compact-total .compact-picker + .compact-picker{margin-inline-start:4px}
+}

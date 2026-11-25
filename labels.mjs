@@ -1,4 +1,5 @@
 const entries = {
+ compactAuto:['자동','自動','Automatic'],compactSince:['적립 시작부터','計上開始から','Since start'],compactLifetime:['적립 시작부터 예상 누적 수익','計上開始からの推定累計収益','Estimated earnings since start'],
  payroll:['급여 일정','給与日程','Payroll dates'],chooseDate:['날짜 선택','日付を選択','Choose a date'],addDate:['추가','追加','Add'],holidayDates:['공휴일','祝日','Public holidays'],leaveDates:['연차','有休','Leave'],
  compactHome:['모바일 홈 화면','モバイルホーム画面','Mobile home'],compactTitle:['금액 위에 표시할 제목','金額の見出し','Title above the amount'],compactPeriod:['집계 기간','集計期間','Time period'],compactAll:['전체 수익','全収益','All income'],compactMonth:['이번 달 예상 누적 수익','今月の推定累計収益','Estimated earnings this month'],compactYear:['올해 예상 누적 수익','今年の推定累計収益','Estimated earnings this year'],
  compactLive:['적립 중','計上中','Accruing'],compactIdle:['적립 대기','計上待機中','Paused'],
