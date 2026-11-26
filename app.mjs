@@ -68,7 +68,7 @@ function idleReason(sources,today,ms,work) {
   return 'idleZero'
 }
 const sourceName=s=>esc(s.name||t(s.type))
-let nextSample=0, sample=null, chartDay=''
+let nextSample=0, sample=null, chartDay='', coinDay='', coinMilestone=null
 const workCheer=['cheerWork','cheerWorkTwo','cheerWorkThree'][Math.floor(Math.random()*3)]
 function render() {
   document.body.classList.toggle('compact-dashboard',page==='dashboard'&&!mini)
@@ -92,6 +92,7 @@ function render() {
   root.innerHTML=({dashboard,sources,history,settings})[page]()
   nextSample=0
   chartDay=''
+  coinMilestone=null
   update(Date.now())
 }
 function maturity(source) {
@@ -117,6 +118,14 @@ function showCatReaction(id) {
     {opacity:0,transform:'translateY(-19px) scale(.9)'}
   ],{duration:1100})
 }
+function celebrateToday(today,todayTotal) {
+  if(state.currency!=='KRW') return
+  const key=iso(today)
+  if(coinDay!==key) {coinDay=key;coinMilestone=null}
+  const milestone=Math.floor(Math.max(0,todayTotal)/1000)
+  if(coinMilestone!==null&&milestone>coinMilestone) showCatReaction('cat-coin')
+  coinMilestone=Math.max(coinMilestone??0,milestone)
+}
 function mobileDashboard() {
   if(mini) return ''
   const selected=state.sources.find(s=>s.id===state.home?.source)
@@ -139,7 +148,7 @@ function mobileDashboard() {
     <footer class="compact-footer">
       <p class="compact-encouragement" id="compact-encouragement" ${selected?.timing==='always'?'hidden':''}></p>
       <button class="compact-cat" type="button" data-action="pet-cats" aria-label="${t('petCats')}">
-        <span class="pixel-cat" aria-hidden="true"></span><span class="cat-heart" id="cat-heart" aria-hidden="true">♥</span>
+        <span class="pixel-cat" aria-hidden="true"></span><span class="cat-coin" id="cat-coin" aria-hidden="true"></span><span class="cat-heart" id="cat-heart" aria-hidden="true">♥</span>
       </button>
     </footer>
   </section>`
@@ -226,6 +235,7 @@ function update(ms) {
       put('compact-encouragement',t(message))
     }
     sample={ms,rate,today,compactRate,compactValue,value:total(today,now)}
+    celebrateToday(today,sample.value)
     nextSample=ms+400
     put('live',t(rate!==0?'live':idleReason(state.sources,today,ms,work)))
     put('hero-rate',rateAmount(rate)+' / '+t('second'))
