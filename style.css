@@ -10,7 +10,12 @@
 @media(max-width:680px){
   body.compact-dashboard{background:light-dark(#f5f6f7,#101318)}
   .compact-dashboard .rail,.compact-dashboard .top,.compact-dashboard .desktop-dashboard{display:none}
-  .compact-dashboard main{padding:12px;max-width:none}
+  .compact-dashboard main{
+    --dashboard-top-gap:12px;
+    --dashboard-bottom-gap:max(72px,env(safe-area-inset-bottom,0px));
+    padding:var(--dashboard-top-gap) 12px var(--dashboard-bottom-gap);
+    max-width:none;
+  }
   .compact-dashboard .compact-panel{display:block;color-scheme:dark;background:#131921;color:#dde5ee;border-radius:19px;padding:17px 16px 19px;font-variant-numeric:tabular-nums}
   .compact-header,.compact-header>div,.compact-row,.compact-status{display:flex;align-items:center;gap:8px}
   .compact-header,.compact-row{justify-content:space-between}
@@ -158,9 +163,9 @@ dialog input:is([type=date],[type=time])::-webkit-datetime-edit{min-inline-size:
 @media(max-width:680px){
   .compact-dashboard .compact-panel{
     display:flex;flex-direction:column;justify-content:space-between;
-    min-block-size:calc(100svh - 24px);gap:clamp(4px,1.7svh,16px);
+    min-block-size:calc(100svh - var(--dashboard-top-gap) - var(--dashboard-bottom-gap));gap:clamp(4px,1.25svh,12px);
   }
-  .compact-dashboard .compact-total{padding-block:clamp(16px,5svh,48px) clamp(12px,3svh,24px)}
+  .compact-dashboard .compact-total{padding-block:clamp(14px,3.5svh,32px) clamp(10px,2.5svh,20px)}
   .compact-footer{display:flex;align-items:center;justify-content:center;gap:3px;min-inline-size:0}
   .compact-footer .compact-encouragement{margin:0;min-inline-size:0}
   .compact-footer .compact-cat{
