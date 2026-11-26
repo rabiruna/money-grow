@@ -199,3 +199,20 @@ dialog input:is([type=date],[type=time])::-webkit-datetime-edit{min-inline-size:
 @media(max-width:680px){
   .compact-rate-scope{grid-column:1/-1;margin:0 0 2px;text-align:center;color:#bac5d1;font-size:.8125rem}
 }
+
+.asset-amount{font-size:1.5rem;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.record-totals{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:14px 0 9px}
+.record-totals>div{display:grid;gap:4px;background:var(--soft);border-radius:8px;padding:8px;min-width:0}
+.record-totals strong{font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.mini .rates .card{container-type:inline-size}
+.mini .rates .value{
+  font-size:clamp(.62rem,calc(145cqi / var(--metric-length,10)),.9375rem);
+  white-space:nowrap;overflow-wrap:normal;
+}
+@media(max-width:500px) and (min-height:280px){
+  .mini main{padding-block:8px}
+  .mini .top{margin-bottom:6px}
+  .mini .hero{padding-block:8px}
+  .mini .rates{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .mini .rates .card{padding-block:5px}
+}

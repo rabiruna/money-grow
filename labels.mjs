@@ -1,4 +1,5 @@
 const entries = {
+ assetHelp:['지금 보유한 자산의 합계를 직접 입력하세요. 수익원에 등록한 원금이나 실제 수익 기록은 여기에 자동 합산되지 않습니다.','現在保有している資産の合計を入力してください。登録した元本や実績収益は自動で加算されません。','Enter the total you currently hold. Source principal and recorded income do not automatically change this balance.'],
  currentCombinedRates:['현재 적립 중인 수익원 합계','現在計上中の収益源の合計','Combined current accrual'],
  dateYear:['년','年','Year'],dateMonth:['월','月','Month'],dateDay:['일','日','Day'],clearDate:['날짜 지우기','日付を消去','Clear date'],invalidDate:['올바른 연·월·일을 입력하세요.','有効な年月日を入力してください。','Enter a valid year, month, and day.'],
  petCats:['고양이 쓰다듬기','猫をなでる','Pet the cats'],
@@ -27,7 +28,7 @@ const entries = {
  in:['출근','始業','Clock-in'],out:['퇴근','終業','Clock-out'],lunch:['점심 시작','昼休み開始','Lunch starts'],minutes:['점심시간 (분)','昼休み（分）','Lunch duration (min)'],weekdays:['근무 요일','勤務曜日','Workdays'],holidays:['공휴일 (YYYY-MM-DD, 줄마다 입력)','祝日（YYYY-MM-DD、1行ずつ）','Public holidays (YYYY-MM-DD, one per line)'],leave:['연차 (YYYY-MM-DD, 줄마다 입력)','有休（YYYY-MM-DD、1行ずつ）','Leave (YYYY-MM-DD, one per line)'],payDayInput:['월급날 (일)','給料日（日）','Payday (day of month)'],period:['급여 산정 시작일 (매월)','給与計算開始日（毎月）','Payroll cycle start day'],
  backup:['백업 및 복원','バックアップと復元','Backup and restore'],download:['JSON 백업 저장','JSONを保存','Download JSON backup'],restore:['백업 복원','バックアップを復元','Restore backup'],install:['앱 설치','アプリをインストール','Install app'],
  installHelp:['지원 브라우저 메뉴에서 앱을 설치하세요. iPhone에서는 Safari 공유 메뉴의 ‘홈 화면에 추가’를 선택하세요.','対応ブラウザのメニューからインストールできます。iPhoneでは Safari の共有メニューから「ホーム画面に追加」を選択してください。','Install from a supported browser menu. On iPhone, use Safari’s Share menu and select Add to Home Screen.'],
- record:['실제 수익 기록','実績を記録','Record income'],received:['수익 입금일','入金日','Date received'],recordHelp:['입금된 금액을 직접 기록하세요. 예상 수익은 등록한 수익원을 기반으로 계산합니다.','入金額を入力してください。見込みは登録済みの収益源から計算します。','Enter income when it arrives. Estimates are calculated from your configured sources.'],
+ record:['실제 수익 기록','実績を記録','Record income'],received:['수익 입금일','入金日','Date received'],recordHelp:['월급이나 이자가 실제로 입금되면 여기에 기록하세요. 입금일을 기준으로 합산하며, 예상 수익과 현재 자산에는 자동 반영되지 않습니다.','給与や利息が入金されたら記録してください。入金日で集計し、見込みや現在の資産には自動反映されません。','Record salary or interest when it arrives. Totals use the payment date and do not change estimated earnings or current assets.'],
  saved:['저장했습니다.','保存しました。','Saved.'],invalid:['입력값을 확인하세요.','入力値を確認してください。','Check the values entered.'],badFile:['백업 파일을 읽을 수 없습니다.','バックアップを読み込めません。','Could not read this backup.'],restored:['현재 데이터를 이 백업으로 교체할까요?','現在のデータを置き換えますか？','Replace current data with this backup?'],deleted:['이 항목을 삭제할까요?','この項目を削除しますか？','Delete this entry?'],storage:['저장할 수 없습니다. 브라우저의 저장 공간을 확인하세요.','保存できません。ブラウザのストレージを確認してください。','Could not save. Check browser storage.'],currencyHelp:['통화 변경은 표시 단위만 바꿉니다.','通貨の変更は表示単位に適用されます。','Currency changes update the display unit.']
 }
 export const translate=(lang,key)=>entries[key]?.[['ko','ja','en'].indexOf(lang)] ?? key

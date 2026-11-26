@@ -173,11 +173,7 @@ function dashboard() {
     <div class="foot"><span class="muted" id="work-label"></span><strong id="time-left"></strong></div>
     <div class="foot"><span class="muted">${t('remaining')}</span><strong id="work-money"></strong></div>
     <div class="foot"><span class="muted">${t('payday')}</span><strong id="payday"></strong></div><p class="work-encouragement" id="work-encouragement"></p></section>
-    <section class="card"><div class="card-head"><h2>${t('goal')}</h2>${icon('goal')}</div>
-    <div class="foot"><span class="muted">${t('assets')}</span><strong>${format(state.assets)}</strong></div>
-    <progress aria-label="${t('goal')}" value="${Math.min(1,state.assets/state.goal)}" max="1"></progress>
-    <div class="foot"><strong>${percentage(state.assets/state.goal)}</strong><span class="muted">${format(state.goal)}</span></div>
-    <div class="foot">${btn('edit','goal')}</div></section>
+    ${assetCard()}
   </div>
   <div class="heading"><h2>${t('sources')}</h2>${btn('manage','page:sources')}</div>
   <section class="card">${sourceRows(false)}</section></div></div>`
@@ -187,16 +183,31 @@ function sourceRows(editable) {
   return state.sources.map(s=>`<div class="row"><div><span class="row-name">${sourceName(s)}</span><span class="muted">${t(methods[s.method])} · ${s.method==='simple'||s.method==='compound'?interestPercentage(s.rate/100):format(s.amount)}</span></div>${editable?maturity(s):''}<div class="row-actions">${editable?btn('edit','source:'+s.id)+btn('remove','delete-source:'+s.id,'','class="danger"'):`<span class="badge">${t(s.timing==='work'?'worktime':'always')}</span>`}</div></div>`).join('')
 }
 const sources=()=>`<section class="card">${sourceRows(true)}</section>`
+function assetCard(inSettings=false) {
+  const heading=inSettings?'assets':'goal'
+  return `<section class="card" data-assets><div class="card-head"><h2>${t(heading)}</h2>${inSettings?btn('edit','goal'):icon('goal')}</div>
+    <div class="foot">${inSettings?'':`<span class="muted">${t('assets')}</span>`}<strong class="asset-amount">${format(state.assets)}</strong></div>
+    <progress aria-label="${t('goal')}" value="${Math.min(1,state.assets/state.goal)}" max="1"></progress>
+    <div class="foot"><strong>${percentage(state.assets/state.goal)}</strong><span class="muted">${t('goal')} · ${format(state.goal)}</span></div>
+    ${inSettings?'':`<div class="foot">${btn('edit','goal')}</div>`}</section>`
+}
 function history() {
+  const now=new Date()
   const rows=[...state.receipts].sort((a,b)=>b.date.localeCompare(a.date))
   return `<section class="card"><div class="card-head"><p class="muted">${t('recordHelp')}</p>${btn('record','receipt','plus','class="primary"')}</div>
+  <div class="record-totals">${dates(now).map((from,i)=>`<div><span class="muted">${t(['today','monthly','yearly'][i])}</span><strong>${format(actual(from,now))}</strong></div>`).join('')}</div>
   ${rows.length?rows.map(r=>`<div class="row"><div><span class="row-name">${esc(r.name)||t('history')}</span><span class="muted">${r.date} · ${format(r.amount)}</span></div><div class="row-actions">${btn('edit','receipt:'+r.id)}${btn('remove','delete-receipt:'+r.id,'','class="danger"')}</div></div>`).join(''):`<p class="empty">${t('empty')}</p>`}</section>`
 }
-const settings=()=>`<div class="stack"><section class="card"><div class="card-head"><h2>${t('compactHome')}</h2>${btn('edit','compact-home')}</div></section><section class="card"><div class="card-head"><h2>${t('appearance')}</h2>${btn('edit','appearance')}</div><div class="foot muted">${state.currency} · ${t(state.theme)} · ${{ko:'한국어',ja:'日本語',en:'English'}[state.lang]}</div></section>
+const settings=()=>`<div class="stack">${assetCard(true)}<section class="card"><div class="card-head"><h2>${t('compactHome')}</h2>${btn('edit','compact-home')}</div></section><section class="card"><div class="card-head"><h2>${t('appearance')}</h2>${btn('edit','appearance')}</div><div class="foot muted">${state.currency} · ${t(state.theme)} · ${{ko:'한국어',ja:'日本語',en:'English'}[state.lang]}</div></section>
 <section class="card"><div class="card-head"><h2>${t('schedule')}</h2>${btn('edit','schedule')}</div><div class="foot muted">${state.schedule.in}–${state.schedule.out} · ${t('payday')} ${shortDate(payday(new Date(),state.schedule.payday))}</div></section>
 <section class="card"><h2>${t('backup')}</h2><div class="foot">${btn('download','backup')}${btn('restore','restore')}<input type="file" accept=".json,application/json" id="backup-file" hidden></div></section>
 <section class="card"><h2>${t('install')}</h2><div class="foot"><p class="muted">${t('installHelp')}</p>${pendingInstall?btn('install','install'):''}</div></section></div>`
-const put=(id,value)=>{const el=$(id);if(el&&el.textContent!==value)el.textContent=value}
+const put=(id,value)=>{
+  const el=$(id)
+  if(!el||el.textContent===value)return
+  el.textContent=value
+  if(mini&&id.startsWith('rate-')) el.style.setProperty('--metric-length',value.length)
+}
 function update(ms) {
   if(page!=='dashboard') return
   const now=new Date(ms)
@@ -489,7 +500,7 @@ document.addEventListener('click',async e=>{
       +select('compactPeriod','period',home.period,homePeriods()),
       data=>({...state,home:Object.fromEntries(data)}))
   }
-  if(kind==='goal') form('goal',numeric('assets','assets',state.assets,'any','min="0"')+numeric('goal','goal',state.goal,'any','min="1"'),data=>({...state,assets:num(data,'assets'),goal:num(data,'goal')}))
+  if(kind==='goal') form('goal',numeric('assets','assets',state.assets,'any','min="0"')+numeric('goal','goal',state.goal,'any','min="1"'),data=>({...state,assets:num(data,'assets'),goal:num(data,'goal')}),'assetHelp')
   if(kind==='backup') backup()
   if(kind==='restore') $('backup-file').click()
   if(kind==='install'&&pendingInstall) {
