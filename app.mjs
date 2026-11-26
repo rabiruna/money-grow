@@ -190,18 +190,22 @@ function sourceRows(editable) {
 const sources=()=>`<section class="card">${sourceRows(true)}</section>`
 function assetCard(inSettings=false) {
   const heading=inSettings?'assets':'goal'
+  const registered=model.registeredAssets(state.sources,new Date())
+  const totalAssets=registered+state.assets
+  const progress=Math.max(0,totalAssets/state.goal)
   return `<section class="card" data-assets><div class="card-head"><h2>${t(heading)}</h2>${inSettings?btn('edit','goal'):icon('goal')}</div>
-    ${inSettings?`<div class="foot"><span class="muted">${t('registeredAssets')}</span><strong class="asset-amount" id="registered-assets">${format(model.registeredAssets(state.sources,new Date()))}</strong></div>
+    <div class="foot"><span class="muted">${t('assetTotal')}</span><strong class="asset-amount" data-asset-total>${format(totalAssets)}</strong></div>
+    ${inSettings?`<div class="foot"><span class="muted">${t('registeredAssets')}</span><strong id="registered-assets">${format(registered)}</strong></div>
+    <div class="foot"><span class="muted">${t('manualAssets')}</span><strong data-manual-assets>${format(state.assets)}</strong></div>
     <p class="muted asset-estimate-note">${t('registeredAssetsHelp')}</p>`:''}
-    <div class="foot"><span class="muted">${t(inSettings?'manualAssets':'assets')}</span><strong ${inSettings?'data-manual-assets':'class="asset-amount"'}>${format(state.assets)}</strong></div>
-    <progress aria-label="${t('goal')}" value="${Math.min(1,state.assets/state.goal)}" max="1"></progress>
-    <div class="foot"><strong>${percentage(state.assets/state.goal)}</strong><span class="muted">${t('goal')} · ${format(state.goal)}</span></div>
+    <progress aria-label="${t('goal')}" value="${Math.min(1,progress)}" max="1"></progress>
+    <div class="foot"><strong>${percentage(progress)}</strong><span class="muted">${t('goal')} · ${format(state.goal)}</span></div>
     ${inSettings?'':`<div class="foot">${btn('edit','goal')}</div>`}</section>`
 }
 function history() {
   const now=new Date()
   const rows=[...state.receipts].sort((a,b)=>b.date.localeCompare(a.date))
-  return `<section class="card"><div class="card-head"><p class="muted">${t('recordHelp')}</p>${btn('record','receipt','plus','class="primary"')}</div>
+  return `<section class="card"><div class="card-head record-header"><p class="muted">${t('recordHelp')}</p>${btn('record','receipt','','class="primary"')}</div>
   <div class="record-totals">${dates(now).map((from,i)=>`<div><span class="muted">${t(['today','monthly','yearly'][i])}</span><strong>${format(actual(from,now))}</strong></div>`).join('')}</div>
   ${rows.length?rows.map(r=>`<div class="row"><div><span class="row-name">${esc(r.name)||t('history')}</span><span class="muted">${r.date} · ${format(r.amount)}</span></div><div class="row-actions">${btn('edit','receipt:'+r.id)}${btn('remove','delete-receipt:'+r.id,'','class="danger"')}</div></div>`).join(''):`<p class="empty">${t('empty')}</p>`}</section>`
 }
@@ -549,7 +553,7 @@ document.addEventListener('click',async e=>{
       +select('compactPeriod','period',home.period,homePeriods()),
       data=>({...state,home:Object.fromEntries(data)}))
   }
-  if(kind==='goal') form('goal',numeric('assets','assets',state.assets,'any','min="0"')+numeric('goal','goal',state.goal,'any','min="1"'),data=>({...state,assets:num(data,'assets'),goal:num(data,'goal')}),'assetHelp')
+  if(kind==='goal') form('goal',numeric('manualAssets','assets',state.assets,'any','min="0"')+numeric('goal','goal',state.goal,'any','min="1"'),data=>({...state,assets:num(data,'assets'),goal:num(data,'goal')}),'assetHelp')
   if(kind==='backup') backup()
   if(kind==='restore') $('backup-file').click()
   if(kind==='install'&&pendingInstall) {
