@@ -1,4 +1,7 @@
 const entries = {
+ petCats:['고양이 쓰다듬기','猫をなでる','Pet the cats'],
+ cheerWorkTwo:['오늘도 차근차근 잘하고 있어요.','今日も一歩ずつ進んでいます。','You’re making steady progress.'],
+ cheerWorkThree:['작은 금액도 모이면 꽤 커져요.','小さな額でも積み重なれば大きくなります。','Small amounts add up.'],
  rateBelow:['{amount} 미만','{amount}未満','< {amount}'],rateAbove:['{amount} 초과','{amount}超','> {amount}'],
  idleLunch:['점심시간','昼休み','Lunch break'],
  cheerOff:['쉬는 날도 잘 보내요.','お休みの日もよい一日を。','Enjoy your day off.'],

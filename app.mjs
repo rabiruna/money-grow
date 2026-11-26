@@ -69,6 +69,7 @@ function idleReason(sources,today,ms,work) {
 }
 const sourceName=s=>esc(s.name||t(s.type))
 let nextSample=0, sample=null, chartDay='', coinMilestone=null, coinDay=''
+const workCheer=['cheerWork','cheerWorkTwo','cheerWorkThree'][Math.floor(Math.random()*3)]
 function render() {
   document.body.classList.toggle('compact-dashboard',page==='dashboard'&&!mini)
   document.documentElement.lang=state.lang
@@ -106,21 +107,23 @@ function homePeriod(source) {
   if(configured && configured!=='auto') return configured
   return ['deposit','saving','mmf'].includes(source?.type)?'since':'today'
 }
+function showCatReaction(id) {
+  const mark=$(id)
+  if(!mark?.animate||!mark.getClientRects().length) return
+  mark.getAnimations().forEach(animation=>animation.cancel())
+  const reduced=window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  mark.animate(reduced?[{opacity:1},{opacity:1}]:[
+    {opacity:0,transform:'translateY(5px) scale(.8)'},
+    {opacity:1,transform:'translateY(-10px) scale(1)',offset:.25},
+    {opacity:0,transform:'translateY(-19px) scale(.9)'}
+  ],{duration:1100})
+}
 function celebrateToday(today,todayTotal) {
-  const coin=$('cat-coin')
-  if(!coin||state.currency!=='KRW'||!coin.getClientRects().length) return
+  if(state.currency!=='KRW') return
   const key=iso(today)
   if(coinDay!==key) {coinDay=key;coinMilestone=null}
   const milestone=Math.floor(Math.max(0,todayTotal)/1000)
-  if(coinMilestone!==null&&milestone>coinMilestone) {
-    coin.getAnimations().forEach(animation=>animation.cancel())
-    const reduced=window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    coin.animate(reduced?[{opacity:1},{opacity:1}]:[
-      {opacity:0,transform:'translateY(5px) scale(.8)'},
-      {opacity:1,transform:'translateY(-12px) scale(1)',offset:.25},
-      {opacity:0,transform:'translateY(-22px) scale(.9)'}
-    ],{duration:1100})
-  }
+  if(coinMilestone!==null&&milestone>coinMilestone) showCatReaction('cat-coin')
   coinMilestone=Math.max(coinMilestone??0,milestone)
 }
 function mobileDashboard() {
@@ -144,11 +147,12 @@ function mobileDashboard() {
       <p class="compact-encouragement" id="compact-encouragement"></p>
     </section>
   </section>
-  <div class="cat-room" aria-hidden="true">
-    <span class="cat-stars"></span>
-    <span class="cat-walker"><span class="pixel-cat"></span></span>
-    <span class="cat-office"><span class="pixel-cat"></span><span class="cat-desk"></span><span class="cat-screen"></span><span class="cat-coin" id="cat-coin"></span></span>
-  </div>`
+  <button class="cat-room" type="button" data-action="pet-cats" aria-label="${t('petCats')}">
+    <span class="cat-walker" aria-hidden="true"><span class="pixel-cat"></span></span>
+    <span class="cat-office" aria-hidden="true"><span class="pixel-cat"></span></span>
+    <span class="cat-coin" id="cat-coin" aria-hidden="true">🪙</span>
+    <span class="cat-heart" id="cat-heart" aria-hidden="true">♥</span>
+  </button>`
 }
 function rateCards() {
   return `<div class="rates">${['second','minute','hour','daily'].map((k,i)=>`<div class="card">${mini?'':`<span class="chip">${icon(['bolt','clock','clock','calendar'][i])}</span>`}<div class="label">${t(k)}</div><strong class="value" id="rate-${i}"></strong></div>`).join('')}</div>`
@@ -204,7 +208,7 @@ function update(ms) {
     const scheduled=work.reduce((sum,[a,b])=>sum+b-a,0)
     const worked=work.reduce((sum,[a,b])=>sum+Math.max(0,Math.min(ms,b)-a),0)
     const progressValue=scheduled?worked/scheduled:0
-    const message=!scheduled?'cheerOff':!remaining?'cheerDone':isLunchBreak(now,state.schedule)?'cheerLunch':progressValue>=0.8?'cheerSoon':'cheerWork'
+    const message=!scheduled?'cheerOff':!remaining?'cheerDone':isLunchBreak(now,state.schedule)?'cheerLunch':progressValue>=0.8?'cheerSoon':workCheer
     put('work-encouragement',t(message))
     const rate=total(now,new Date(ms+1))*1000
     let compactRate=0, compactValue=0
@@ -439,6 +443,7 @@ document.addEventListener('click',async e=>{
   if(kind==='source') sourceForm(id)
   if(kind==='receipt') receiptForm(id)
   if(kind==='cancel') dialog.close()
+  if(kind==='pet-cats') showCatReaction('cat-heart')
   if(kind==='schedule') scheduleForm()
   if(kind==='appearance') appearanceForm()
   if(kind==='compact-home') {
