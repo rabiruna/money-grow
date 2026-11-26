@@ -1,4 +1,4 @@
-import {calendar,date,day,defaults,iso,nextDay,payday,windows} from './engine.mjs'
+import {calendar,date,day,defaults,iso,isLunchBreak,nextDay,payday,windows} from './engine.mjs'
 import {translate} from './labels.mjs'
 import {currencies,methods,types,valid,validDate} from './storage.mjs'
 
@@ -63,7 +63,7 @@ function idleReason(sources,today,ms,work) {
   if(!started.length) return 'idleFuture'
   const active=started.filter(src=>!src.end||src.end>=key)
   if(!active.length) return 'idleEnded'
-  if(active.every(src=>src.timing==='work')&&!work.some(([a,b])=>a<=ms&&ms<b)) return 'idleWork'
+  if(active.every(src=>src.timing==='work')&&!work.some(([a,b])=>a<=ms&&ms<b)) return isLunchBreak(new Date(ms),state.schedule)?'idleLunch':'idleWork'
   return 'idleZero'
 }
 const sourceName=s=>esc(s.name||t(s.type))
@@ -125,6 +125,7 @@ function mobileDashboard() {
     <section class="compact-sources" aria-label="${t('sources')}">${rows||btn('add','source')}</section>
     <section class="compact-work" ${selected?.timing==='always'?'hidden':''}><div class="compact-row"><span id="compact-work-label"></span><strong id="compact-time"></strong></div>
       <progress id="compact-progress" max="1" value="0" aria-label="${t('work')}" hidden></progress>
+      <p class="compact-encouragement" id="compact-encouragement"></p>
     </section>
   </section>`
 }
@@ -204,6 +205,8 @@ function update(ms) {
       const worked=work.reduce((sum,[a,b])=>sum+Math.max(0,Math.min(ms,b)-a),0)
       progress.hidden=!scheduled
       progress.value=scheduled?worked/scheduled:0
+      const message=!scheduled?'cheerOff':!remaining?'cheerDone':isLunchBreak(now,state.schedule)?'cheerLunch':progress.value>=0.8?'cheerSoon':'cheerWork'
+      put('compact-encouragement',t(message))
     }
     sample={ms,rate,today,compactRate,compactValue,value:total(today,now)}
     nextSample=ms+400

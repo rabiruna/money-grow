@@ -25,9 +25,17 @@ export function defaults() {
     receipts:[]
   }
 }
+function isWorkday(d,s) {
+  const key=iso(d)
+  return s.weekdays.includes(d.getDay())&&!s.holidays.includes(key)&&!s.leave.includes(key)
+}
+export function isLunchBreak(now,s) {
+  if(!s.minutes||!isWorkday(now,s)) return false
+  const lunch=+clock(now,s.lunch)
+  return now>=clock(now,s.in)&&now<clock(now,s.out)&&now>=lunch&&now<lunch+s.minutes*60000
+}
 export function windows(d,s) {
-  const key = iso(d)
-  if (!s.weekdays.includes(d.getDay()) || s.holidays.includes(key) || s.leave.includes(key)) return []
+  if (!isWorkday(d,s)) return []
   const a=+clock(d,s.in), b=+clock(d,s.out)
   const l=+clock(d,s.lunch), r=l+s.minutes*60000
   if (!s.minutes || r<=a || l>=b) return [[a,b]]

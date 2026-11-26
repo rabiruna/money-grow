@@ -149,3 +149,6 @@ dialog input:is([type=date],[type=time])::-webkit-datetime-edit{min-inline-size:
   .schedule-date-entry button{justify-self:start}
   .compact-status{white-space:normal}
 }
+@media(max-width:680px){
+  .compact-encouragement{margin-top:10px;color:#bac5d1;text-align:center;font-size:.875rem;overflow-wrap:anywhere}
+}

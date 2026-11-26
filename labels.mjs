@@ -1,4 +1,10 @@
 const entries = {
+ idleLunch:['점심시간','昼休み','Lunch break'],
+ cheerOff:['쉬는 날도 잘 보내요.','お休みの日もよい一日を。','Enjoy your day off.'],
+ cheerDone:['오늘도 수고했어요!','今日もお疲れさまでした！','Nice work today!'],
+ cheerLunch:['점심시간이에요. 잠깐 쉬어가요.','昼休みです。ひと休みしましょう。','It’s lunch time. Take a break.'],
+ cheerSoon:['퇴근이 가까워졌어요. 조금만 더!','退勤まであと少し！','Almost time to clock out!'],
+ cheerWork:['이번 달도 차곡차곡 쌓아가는 중','今月も少しずつ積み上げています。','Your earnings are adding up this month.'],
  idleEmpty:['수익원 없음','収益源なし','No income sources'],idleFuture:['시작일 전','開始日前','Before start date'],idleEnded:['적립 기간 종료','計上期間終了','Accrual ended'],idleWork:['근무시간 아님','勤務時間外','Outside working hours'],idleZero:['현재 수익 0','現在の収益 0','Current income is zero'],
  maturityDate:['만기일','満期日','Maturity date'],maturityInterest:['만기 예상 이자','満期時の推定利息','Estimated interest at maturity'],maturityHelp:['만기 예상 이자를 보려면 수익원에서 만기일을 입력하세요.','満期時の推定利息を表示するには満期日を入力してください。','Set a maturity date in the income source to see projected interest.'],
  compactAuto:['자동','自動','Automatic'],compactSince:['적립 시작부터','計上開始から','Since start'],compactLifetime:['적립 시작부터 예상 누적 수익','計上開始からの推定累計収益','Estimated earnings since start'],
