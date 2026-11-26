@@ -184,3 +184,10 @@ dialog input:is([type=date],[type=time])::-webkit-datetime-edit{min-inline-size:
 @media(prefers-reduced-motion:reduce){
   .compact-cat .pixel-cat{animation:none}
 }
+@media(max-width:680px) and (max-height:610px){
+  .compact-dashboard .compact-panel{gap:4px;padding-block:12px}
+  .compact-dashboard .compact-total{padding-block:9px}
+  .compact-panel .compact-rates{padding-bottom:10px}
+  .compact-panel .compact-sources{padding-block:8px}
+  .compact-panel .compact-work{padding-top:8px}
+}
