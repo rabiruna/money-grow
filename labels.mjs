@@ -1,4 +1,9 @@
 const entries = {
+ monthlyAccrued:['이번 달 누적 수익','今月の累計収益','This month so far'],
+ monthlyProjected:['이번 달 예상 총수익','今月の予想総収益','Projected monthly total'],
+ monthlyAssetIncome:['이번 달 자산 수익 (월급 제외)','今月の資産収益（給与を除く）','Monthly asset earnings'],
+ nextRestIncome:['다음 쉬는 날 예상 수익','次の休日の見込み収益','Projected income on next day off'],
+ noRestDay:['휴무일 미설정','休日未設定','No day off scheduled'],closeSummary:['닫기','閉じる','Close'],
  assetTotal:['현재 자산 합계','現在の資産合計','Total current assets'],
  sourceCount:['{count}개','{count}件','{count} listed'],
  dailyTotal:['오늘 하루 예상 합계','今日一日の見込み合計','Projected total today'],

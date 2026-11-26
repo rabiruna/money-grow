@@ -123,6 +123,15 @@ export function calendar(s) {
   }
   return {sourceTotal,registeredAssets,total:(sources,from,to)=>sources.reduce((n,src)=>n+sourceTotal(src,from,to),0)}
 }
+export function nextRestDay(today,schedule) {
+  let candidate=nextDay(today)
+  for(let i=0;i<7;i++,candidate=nextDay(candidate)) {
+    if(!windows(candidate,schedule).length) return candidate
+  }
+  const current=iso(today)
+  const future=[...schedule.holidays,...schedule.leave].filter(value=>value>current).sort()[0]
+  return future?date(future):null
+}
 export function payday(now,n) {
   const today=day(now)
   const thisMonth=clipped(year(now),month(now),n)

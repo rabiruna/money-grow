@@ -1,4 +1,4 @@
-import {addMonths,calendar,date,day,defaults,iso,isLunchBreak,nextDay,payday,windows} from './engine.mjs'
+import {addMonths,calendar,date,day,defaults,iso,isLunchBreak,nextDay,nextRestDay,payday,windows} from './engine.mjs'
 import {translate} from './labels.mjs'
 import {currencies,methods,types,valid,validDate} from './storage.mjs'
 
@@ -136,12 +136,14 @@ function mobileDashboard() {
     <header class="compact-header"><span class="compact-brand"><img src="./icon-192.png" width="22" height="22" alt=""> MONEY GROW</span>
       <div><span class="compact-status" id="compact-status"><i></i><span id="compact-live"></span></span>${btn('settings','page:settings','settings')}</div>
     </header>
-    <div class="compact-total"><p>${esc(state.home?.title || t(({month:'compactMonth',year:'compactYear',since:'compactLifetime'})[period]||'hero'))}</p><strong id="compact-counter"></strong>
-      <label class="compact-picker"><span class="compact-sr">${t('sources')}</span><select id="compact-picker"><option value="">${t('compactAll')}</option>${state.sources.map(s=>`<option value="${s.id}" ${s===selected?'selected':''}>${sourceName(s)}</option>`).join('')}</select></label>
-      <label class="compact-picker"><span class="compact-sr">${t('compactPeriod')}</span><select id="compact-period">${Object.entries(homePeriods()).map(([value,label])=>`<option value="${value}" ${value===(state.home?.period??'auto')?'selected':''}>${label}</option>`).join('')}</select></label></div>
+    <div class="compact-total"><p>${esc(state.home?.title || t(({month:'compactMonth',year:'compactYear',since:'compactLifetime'})[period]||'hero'))}</p><strong id="compact-counter"></strong></div>
     ${maturity(selected)}
-    <div class="compact-rates">${selected?'':`<p class="compact-rate-scope">${t('currentCombinedRates')}</p>`}${['second','minute','hour'].map((k,i)=>`<div><span>${t(k)}</span><strong id="compact-rate-${i}"></strong></div>`).join('')}<div class="compact-daily"><span>${t('dailyTotal')}</span><strong id="compact-daily"></strong></div></div>
+    <div class="compact-rates">${selected?'':`<p class="compact-rate-scope">${t('currentCombinedRates')}</p>`}${['second','minute','hour'].map((k,i)=>`<div><span>${t(k)}</span><strong id="compact-rate-${i}"></strong></div>`).join('')}<button class="compact-daily" type="button" data-action="income-summary" aria-haspopup="dialog"><span>${t('dailyTotal')}</span><strong id="compact-daily"></strong></button></div>
     <section class="compact-sources" aria-label="${t('sources')}">
+      <div class="compact-filters">
+      <label class="compact-picker"><span class="compact-sr">${t('sources')}</span><select id="compact-picker"><option value="">${t('compactAll')}</option>${state.sources.map(s=>`<option value="${s.id}" ${s===selected?'selected':''}>${sourceName(s)}</option>`).join('')}</select></label>
+      <label class="compact-picker"><span class="compact-sr">${t('compactPeriod')}</span><select id="compact-period">${Object.entries(homePeriods()).map(([value,label])=>`<option value="${value}" ${value===(state.home?.period??'auto')?'selected':''}>${label}</option>`).join('')}</select></label>
+      </div>
       ${rows?`<details class="compact-source-disclosure">
         <summary><span>${t('sources')}</span><span class="compact-source-count">${t('sourceCount').replace('{count}',shown.length)}<i aria-hidden="true"></i></span></summary>
         <div class="compact-source-list" role="region" aria-label="${t('sources')}" tabindex="0">${rows}</div>
@@ -391,6 +393,27 @@ function form(title,fields,save,hint='') {
   dialog.showModal()
   return f
 }
+function incomeSummary() {
+  const now=new Date()
+  const [today,monthStart]=dates(now)
+  const nextMonth=addMonths(monthStart,1)
+  const rest=nextRestDay(today,state.schedule)
+  const assetSources=state.sources.filter(src=>['deposit','saving','mmf'].includes(src.type))
+  const items=[
+    ['monthlyAccrued',format(total(monthStart,now))],
+    ['monthlyProjected',format(total(monthStart,nextMonth))],
+    ['monthlyAssetIncome',format(model.total(assetSources,monthStart,now))],
+    ['nextRestIncome',rest?format(total(rest,nextDay(rest))):t('noRestDay'),rest?shortDate(rest):'']
+  ]
+  dialog.classList.remove('schedule-dialog')
+  dialog.setAttribute('aria-labelledby','dialog-title')
+  dialog.innerHTML=`<div class="income-summary">
+    <h2 id="dialog-title">${t('snapshot')}</h2>
+    <dl>${items.map(([label,amount,detail])=>`<div><dt>${t(label)}${detail?`<small>${detail}</small>`:''}</dt><dd>${amount}</dd></div>`).join('')}</dl>
+    <div class="form-actions">${btn('closeSummary','cancel')}</div>
+  </div>`
+  dialog.showModal()
+}
 function sourceForm(id) {
   const old=state.sources.find(s=>s.id===id)
   const s=old??{type:'other',name:'',method:'monthly',timing:'always',start:iso(new Date()),end:'',amount:0,principal:0,payment:0,rate:0}
@@ -541,6 +564,7 @@ document.addEventListener('click',async e=>{
   if(kind==='source') sourceForm(id)
   if(kind==='receipt') receiptForm(id)
   if(kind==='cancel') dialog.close()
+  if(kind==='income-summary') incomeSummary()
   if(kind==='pet-cats') showCatReaction('cat-heart')
   if(kind==='schedule') scheduleForm()
   if(kind==='appearance') appearanceForm()
