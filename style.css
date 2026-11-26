@@ -155,35 +155,25 @@ dialog input:is([type=date],[type=time])::-webkit-datetime-edit{min-inline-size:
 
 .work-encouragement{margin-top:12px;color:var(--muted);font-size:.875rem}
 
-.cat-room{display:none}
 @media(max-width:680px){
-  .compact-dashboard .cat-room{
-    display:block;position:relative;isolation:isolate;overflow:hidden;width:100%;aspect-ratio:3/1;
-    margin-top:10px;padding:0;border:1px solid #29343d;border-radius:17px;
-    background:#172128 url('./cat-room.webp') center/100% 100% no-repeat;
+  .compact-dashboard .compact-panel{
+    display:flex;flex-direction:column;justify-content:space-between;
+    min-block-size:calc(100svh - 24px);gap:clamp(4px,1.7svh,16px);
   }
-  .compact-dashboard .cat-room:hover{border-color:#3b5058}
-  .cat-walker{position:absolute;inset:auto 28% 7% 8%;animation:cat-roam 23s ease-in-out infinite}
-  .pixel-cat{
-    display:block;width:clamp(43px,15vw,79px);aspect-ratio:4/3;
-    background:url('./pixel-cats.png') left bottom/200% 100% no-repeat;image-rendering:pixelated;
-    filter:drop-shadow(0 2px 1px #091411b0);
+  .compact-dashboard .compact-total{padding-block:clamp(16px,5svh,48px) clamp(12px,3svh,24px)}
+  .compact-footer{display:flex;align-items:center;justify-content:center;gap:3px;min-inline-size:0}
+  .compact-footer .compact-encouragement{margin:0;min-inline-size:0}
+  .compact-footer .compact-cat{
+    position:relative;flex:none;padding:0;inline-size:44px;block-size:44px;
+    border-color:transparent;background:transparent;
   }
-  .cat-walker .pixel-cat{animation:cat-face 23s steps(1,end) infinite,cat-walk-step 23s linear infinite}
-  .cat-office{position:absolute;right:12%;bottom:30%}
-  .cat-office .pixel-cat{width:clamp(34px,11vw,64px);background-position:right bottom;transform-origin:bottom;animation:cat-breathe 4s ease-in-out infinite}
-  .cat-coin,.cat-heart{position:absolute;bottom:59%;opacity:0;pointer-events:none}
-  .cat-coin{right:17%;font-size:1.1rem}
-  .cat-heart{right:26%;color:#ffb4a1;font-size:1.15rem;text-shadow:0 1px 3px #3f191e}
+  .compact-cat .pixel-cat{
+    display:block;width:27px;height:20px;background:url('./pixel-cats.png') center/contain no-repeat;
+    image-rendering:pixelated;animation:cat-shift 16s ease-in-out infinite;
+  }
+  .compact-cat .cat-heart{position:absolute;bottom:27px;color:#ffb4a1;font-size:.75rem;opacity:0;pointer-events:none}
 }
-@keyframes cat-roam{0%,12%,100%{transform:translateX(0)}45%,61%{transform:translateX(72%)}}
-@keyframes cat-face{0%{scale:1 1}57%{scale:-1 1}95%{scale:1 1}}
-@keyframes cat-walk-step{
-  0%,12%,45%,61%,95%,100%{translate:0 0}
-  16%,24%,32%,40%,65%,73%,81%,89%{translate:0 -2px}
-  20%,28%,36%,44%,69%,77%,85%,93%{translate:0 0}
-}
-@keyframes cat-breathe{50%{transform:scaleY(.97)}}
+@keyframes cat-shift{0%,80%,100%{transform:translateY(0)}86%,94%{transform:translateY(-1px)}}
 @media(prefers-reduced-motion:reduce){
-  .cat-walker,.cat-walker .pixel-cat,.cat-office .pixel-cat{animation:none}
+  .compact-cat .pixel-cat{animation:none}
 }

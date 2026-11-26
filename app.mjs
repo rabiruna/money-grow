@@ -68,7 +68,7 @@ function idleReason(sources,today,ms,work) {
   return 'idleZero'
 }
 const sourceName=s=>esc(s.name||t(s.type))
-let nextSample=0, sample=null, chartDay='', coinMilestone=null, coinDay=''
+let nextSample=0, sample=null, chartDay=''
 const workCheer=['cheerWork','cheerWorkTwo','cheerWorkThree'][Math.floor(Math.random()*3)]
 function render() {
   document.body.classList.toggle('compact-dashboard',page==='dashboard'&&!mini)
@@ -92,7 +92,6 @@ function render() {
   root.innerHTML=({dashboard,sources,history,settings})[page]()
   nextSample=0
   chartDay=''
-  coinMilestone=null
   update(Date.now())
 }
 function maturity(source) {
@@ -118,14 +117,6 @@ function showCatReaction(id) {
     {opacity:0,transform:'translateY(-19px) scale(.9)'}
   ],{duration:1100})
 }
-function celebrateToday(today,todayTotal) {
-  if(state.currency!=='KRW') return
-  const key=iso(today)
-  if(coinDay!==key) {coinDay=key;coinMilestone=null}
-  const milestone=Math.floor(Math.max(0,todayTotal)/1000)
-  if(coinMilestone!==null&&milestone>coinMilestone) showCatReaction('cat-coin')
-  coinMilestone=Math.max(coinMilestone??0,milestone)
-}
 function mobileDashboard() {
   if(mini) return ''
   const selected=state.sources.find(s=>s.id===state.home?.source)
@@ -144,15 +135,14 @@ function mobileDashboard() {
     <section class="compact-sources" aria-label="${t('sources')}">${rows||btn('add','source')}</section>
     <section class="compact-work" ${selected?.timing==='always'?'hidden':''}><div class="compact-row"><span id="compact-work-label"></span><strong id="compact-time"></strong></div>
       <progress id="compact-progress" max="1" value="0" aria-label="${t('work')}" hidden></progress>
-      <p class="compact-encouragement" id="compact-encouragement"></p>
     </section>
-  </section>
-  <button class="cat-room" type="button" data-action="pet-cats" aria-label="${t('petCats')}">
-    <span class="cat-walker" aria-hidden="true"><span class="pixel-cat"></span></span>
-    <span class="cat-office" aria-hidden="true"><span class="pixel-cat"></span></span>
-    <span class="cat-coin" id="cat-coin" aria-hidden="true">🪙</span>
-    <span class="cat-heart" id="cat-heart" aria-hidden="true">♥</span>
-  </button>`
+    <footer class="compact-footer">
+      <p class="compact-encouragement" id="compact-encouragement" ${selected?.timing==='always'?'hidden':''}></p>
+      <button class="compact-cat" type="button" data-action="pet-cats" aria-label="${t('petCats')}">
+        <span class="pixel-cat" aria-hidden="true"></span><span class="cat-heart" id="cat-heart" aria-hidden="true">♥</span>
+      </button>
+    </footer>
+  </section>`
 }
 function rateCards() {
   return `<div class="rates">${['second','minute','hour','daily'].map((k,i)=>`<div class="card">${mini?'':`<span class="chip">${icon(['bolt','clock','clock','calendar'][i])}</span>`}<div class="label">${t(k)}</div><strong class="value" id="rate-${i}"></strong></div>`).join('')}</div>`
@@ -236,7 +226,6 @@ function update(ms) {
       put('compact-encouragement',t(message))
     }
     sample={ms,rate,today,compactRate,compactValue,value:total(today,now)}
-    celebrateToday(today,sample.value)
     nextSample=ms+400
     put('live',t(rate!==0?'live':idleReason(state.sources,today,ms,work)))
     put('hero-rate',rateAmount(rate)+' / '+t('second'))
