@@ -186,7 +186,9 @@ const sources=()=>`<section class="card">${sourceRows(true)}</section>`
 function assetCard(inSettings=false) {
   const heading=inSettings?'assets':'goal'
   return `<section class="card" data-assets><div class="card-head"><h2>${t(heading)}</h2>${inSettings?btn('edit','goal'):icon('goal')}</div>
-    <div class="foot">${inSettings?'':`<span class="muted">${t('assets')}</span>`}<strong class="asset-amount">${format(state.assets)}</strong></div>
+    ${inSettings?`<div class="foot"><span class="muted">${t('registeredAssets')}</span><strong class="asset-amount" id="registered-assets">${format(model.registeredAssets(state.sources,new Date()))}</strong></div>
+    <p class="muted asset-estimate-note">${t('registeredAssetsHelp')}</p>`:''}
+    <div class="foot"><span class="muted">${t(inSettings?'manualAssets':'assets')}</span><strong ${inSettings?'data-manual-assets':'class="asset-amount"'}>${format(state.assets)}</strong></div>
     <progress aria-label="${t('goal')}" value="${Math.min(1,state.assets/state.goal)}" max="1"></progress>
     <div class="foot"><strong>${percentage(state.assets/state.goal)}</strong><span class="muted">${t('goal')} · ${format(state.goal)}</span></div>
     ${inSettings?'':`<div class="foot">${btn('edit','goal')}</div>`}</section>`

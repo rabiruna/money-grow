@@ -50,6 +50,14 @@ function work(a,b,s) {
   }
   return ms
 }
+function* scheduledPayments(src,origin,end) {
+  if(src.type!=='saving'||!src.payment) return
+  for(let i=1;;i++) {
+    const paid=addMonths(origin,i)
+    if(paid>=end) return
+    yield paid
+  }
+}
 export function calendar(s) {
   const cache=new Map()
   const span=(a,b,timing)=>timing==='work' ? work(a,b,s) : b-a
@@ -84,13 +92,8 @@ export function calendar(s) {
         return principal*Math.exp(logRate*prior)*Math.expm1(logRate*elapsed)
       }
       let total=interest(src.principal,origin,a,end)
-      if(src.type==='saving' && src.payment) {
-        const due=origin.getDate()
-        for(let i=1;;i++) {
-          const paid=clipped(year(origin),month(origin)+i,due)
-          if(paid>=end) break
-          total+=interest(src.payment,paid,Math.max(a,+paid),end)
-        }
+      for(const paid of scheduledPayments(src,origin,end)) {
+        total+=interest(src.payment,paid,Math.max(a,+paid),end)
       }
       return total
     }
@@ -104,7 +107,21 @@ export function calendar(s) {
     }
     return total
   }
-  return {sourceTotal,total:(sources,from,to)=>sources.reduce((n,src)=>n+sourceTotal(src,from,to),0)}
+  function registeredAssets(sources,now) {
+    return sources.reduce((sum,src)=>{
+      if(src.type==='salary') return sum
+      const origin=date(src.start)
+      if(now<origin) return sum
+      let balance=sourceTotal(src,origin,now)
+      if(src.method==='simple'||src.method==='compound') {
+        balance+=src.principal
+        const through=src.end?min(nextDay(date(src.end)),+now+1):+now+1
+        for(const _ of scheduledPayments(src,origin,through)) balance+=src.payment
+      }
+      return sum+balance
+    },0)
+  }
+  return {sourceTotal,registeredAssets,total:(sources,from,to)=>sources.reduce((n,src)=>n+sourceTotal(src,from,to),0)}
 }
 export function payday(now,n) {
   const today=day(now)
