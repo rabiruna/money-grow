@@ -13,7 +13,7 @@ const mini=new URLSearchParams(location.search).has('mini')
 document.body.classList.toggle('mini',mini)
 const t=k=>translate(state.lang,k)
 const locale=()=>({ko:'ko-KR',ja:'ja-JP',en:'en-US'})[state.lang]
-let format, precise, rateFormat, fullDate, shortDate, percentage
+let format, precise, rateFormat, fullDate, shortDate, percentage, counterFormats
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c])
 const iconPaths={
  dashboard:'M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM14 14h7v7h-7z',
@@ -52,6 +52,20 @@ function actual(from,to) {
   return state.receipts.reduce((sum,r)=>r.date>=start&&r.date<=end?sum+r.amount:sum,0)
 }
 const total=(from,to)=>model.total(state.sources,from,to)
+function counterAmount(value,rate) {
+  const digits=rate?Math.min(8,Math.max(2,2-Math.floor(Math.log10(Math.abs(rate))))):2
+  return counterFormats[digits-2](value===0?0:value)
+}
+function idleReason(sources,today,ms,work) {
+  if(!sources.length) return 'idleEmpty'
+  const key=iso(today)
+  const started=sources.filter(src=>src.start<=key)
+  if(!started.length) return 'idleFuture'
+  const active=started.filter(src=>!src.end||src.end>=key)
+  if(!active.length) return 'idleEnded'
+  if(active.every(src=>src.timing==='work')&&!work.some(([a,b])=>a<=ms&&ms<b)) return 'idleWork'
+  return 'idleZero'
+}
 const sourceName=s=>esc(s.name||t(s.type))
 let nextSample=0, sample=null, chartDay=''
 function render() {
@@ -62,7 +76,10 @@ function render() {
   const loc=locale(), options={style:'currency',currency:state.currency}
   format=new Intl.NumberFormat(loc,options).format
   precise=new Intl.NumberFormat(loc,{...options,minimumFractionDigits:2,maximumFractionDigits:2}).format
-  rateFormat=new Intl.NumberFormat(loc,{...options,minimumFractionDigits:2,maximumFractionDigits:4}).format
+  const normalRate=new Intl.NumberFormat(loc,{...options,minimumFractionDigits:2,maximumFractionDigits:4}).format
+  const smallRate=new Intl.NumberFormat(loc,{...options,minimumFractionDigits:2,maximumFractionDigits:12}).format
+  rateFormat=value=>value!==0&&Math.abs(value)<0.01?smallRate(value):normalRate(value)
+  counterFormats=Array.from({length:7},(_,i)=>new Intl.NumberFormat(loc,{...options,minimumFractionDigits:i+2,maximumFractionDigits:i+2}).format)
   fullDate=new Intl.DateTimeFormat(loc,{dateStyle:'full'}).format
   shortDate=new Intl.DateTimeFormat(loc,{month:'short',day:'numeric',weekday:'short'}).format
   percentage=new Intl.NumberFormat(loc,{style:'percent',maximumFractionDigits:1}).format
@@ -166,17 +183,18 @@ function update(ms) {
     let compactRate=0, compactValue=0
     if($('compact-counter')) {
       const selected=state.sources.find(s=>s.id===state.home?.source)
-      const measure=(a,b)=>selected?model.sourceTotal(selected,a,b):total(a,b)
+      const visibleSources=selected?[selected]:state.sources
+      const measure=(a,b)=>model.total(visibleSources,a,b)
       const period=homePeriod(selected)
       const start=period==='since'
-        ? new Date((selected?[selected]:state.sources).reduce((earliest,src)=>Math.min(earliest,+date(src.start)),ms))
+        ? new Date(visibleSources.reduce((earliest,src)=>Math.min(earliest,+date(src.start)),ms))
         : period==='month'?periods[0]:period==='year'?periods[1]:today
       compactRate=measure(now,new Date(ms+1))*1000
       compactValue=measure(start,now)
-      put('compact-live',t(compactRate!==0?'compactLive':'compactIdle'))
+      put('compact-live',t(compactRate!==0?'compactLive':idleReason(visibleSources,today,ms,work)))
       $('compact-status').classList.toggle('earning',compactRate!==0)
-      ;[compactRate,compactRate*60,compactRate*3600].forEach((v,i)=>put('compact-rate-'+i,(i===2?format:precise)(v)))
-      for(const src of selected?[selected]:state.sources) {
+      ;[compactRate,compactRate*60,compactRate*3600].forEach((v,i)=>put('compact-rate-'+i,rateFormat(v)))
+      for(const src of visibleSources) {
         const value=model.sourceTotal(src,start,now)
         put('compact-source-'+src.id,(value>0?'+':'')+(value===0?format(0):precise(value)))
         $('compact-source-'+src.id).classList.toggle('zero',value===0)
@@ -189,9 +207,9 @@ function update(ms) {
     }
     sample={ms,rate,today,compactRate,compactValue,value:total(today,now)}
     nextSample=ms+400
-    put('live',t(rate!==0?'live':'idle'))
+    put('live',t(rate!==0?'live':idleReason(state.sources,today,ms,work)))
     put('hero-rate',rateFormat(rate)+' / '+t('second'))
-    ;[rate,rate*60,rate*3600,total(today,tomorrow)].forEach((v,i)=>put('rate-'+i,(i===0?rateFormat:precise)(v)))
+    ;[rate,rate*60,rate*3600,total(today,tomorrow)].forEach((v,i)=>put('rate-'+i,(i===3?precise:rateFormat)(v)))
     ;[today,...periods].forEach((from,i)=>{
       put('estimate-'+i,format(i===0?sample.value:total(from,now)))
       put('actual-'+i,format(actual(from,now)))
@@ -208,10 +226,10 @@ function update(ms) {
     if(chartDay!==iso(today)) { chartDay=iso(today); drawChart() }
   }
   const value=sample.value+sample.rate*(ms-sample.ms)/1000
-  const display=precise(Math.abs(value)<0.005?0:value)
+  const display=counterAmount(value,sample.rate)
   put('counter',display)
   const compact=sample.compactValue+sample.compactRate*(ms-sample.ms)/1000
-  put('compact-counter',precise(Math.abs(compact)<0.005?0:compact))
+  put('compact-counter',counterAmount(compact,sample.compactRate))
 }
 function drawChart() {
   const canvas=$('chart')

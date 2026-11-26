@@ -65,17 +65,22 @@ export function calendar(s) {
       return total
     }
     if(src.method==='simple' || src.method==='compound') {
-      const interest=(principal,from,to)=>{
-        const units=span(from,to,src.timing)/(365*DAY)
-        return src.method==='simple' ? principal*src.rate/100*units : principal*Math.expm1(Math.log1p(src.rate/100)*units)
+      const annual=src.rate/100
+      const logRate=Math.log1p(annual)
+      const interest=(principal,origin,from,to)=>{
+        const elapsed=span(from,to,src.timing)/(365*DAY)
+        if(!elapsed) return 0
+        if(src.method==='simple') return principal*annual*elapsed
+        const prior=span(origin,from,src.timing)/(365*DAY)
+        return principal*Math.exp(logRate*prior)*Math.expm1(logRate*elapsed)
       }
-      let total=interest(src.principal,origin,end)-interest(src.principal,origin,a)
+      let total=interest(src.principal,origin,a,end)
       if(src.type==='saving' && src.payment) {
         const due=origin.getDate()
         for(let i=1;;i++) {
           const paid=clipped(year(origin),month(origin)+i,due)
           if(paid>=end) break
-          total+=interest(src.payment,paid,end)-interest(src.payment,paid,Math.max(a,+paid))
+          total+=interest(src.payment,paid,Math.max(a,+paid),end)
         }
       }
       return total

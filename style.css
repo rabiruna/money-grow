@@ -133,3 +133,19 @@
 }
 .brand-icon img{inline-size:100%;block-size:auto}
 .row:has(>.maturity-help){flex-wrap:wrap}
+
+dialog input:is([type=date],[type=time]){
+  display:block;
+  inline-size:100%;
+  min-inline-size:0;
+  max-inline-size:100%;
+  -webkit-appearance:none;
+  appearance:none;
+}
+dialog input:is([type=date],[type=time])::-webkit-date-and-time-value{min-height:1.2em;text-align:start}
+dialog input:is([type=date],[type=time])::-webkit-datetime-edit{min-inline-size:0;padding:0}
+@media(max-width:680px){
+  .schedule-dialog .schedule-date-entry{grid-template-columns:minmax(0,1fr);align-items:stretch}
+  .schedule-date-entry button{justify-self:start}
+  .compact-status{white-space:normal}
+}

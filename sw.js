@@ -1,5 +1,5 @@
 const prefix = 'money-grow:'+self.registration.scope+':'
-const cacheName = prefix+'v9'
+const cacheName = prefix+'v10'
 const files = ['./','./index.html','./style.css','./app.mjs','./engine.mjs','./storage.mjs','./labels.mjs','./manifest.webmanifest','./icon-192.png','./icon-512.png']
 
 self.addEventListener('install', event => {
