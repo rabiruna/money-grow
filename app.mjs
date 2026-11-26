@@ -68,7 +68,7 @@ function idleReason(sources,today,ms,work) {
   return 'idleZero'
 }
 const sourceName=s=>esc(s.name||t(s.type))
-let nextSample=0, sample=null, chartDay=''
+let nextSample=0, sample=null, chartDay='', coinMilestone=null, coinDay=''
 function render() {
   document.body.classList.toggle('compact-dashboard',page==='dashboard'&&!mini)
   document.documentElement.lang=state.lang
@@ -91,6 +91,7 @@ function render() {
   root.innerHTML=({dashboard,sources,history,settings})[page]()
   nextSample=0
   chartDay=''
+  coinMilestone=null
   update(Date.now())
 }
 function maturity(source) {
@@ -104,6 +105,23 @@ function homePeriod(source) {
   const configured=state.home?.period
   if(configured && configured!=='auto') return configured
   return ['deposit','saving','mmf'].includes(source?.type)?'since':'today'
+}
+function celebrateToday(today,todayTotal) {
+  const coin=$('cat-coin')
+  if(!coin||state.currency!=='KRW'||!coin.getClientRects().length) return
+  const key=iso(today)
+  if(coinDay!==key) {coinDay=key;coinMilestone=null}
+  const milestone=Math.floor(Math.max(0,todayTotal)/1000)
+  if(coinMilestone!==null&&milestone>coinMilestone) {
+    coin.getAnimations().forEach(animation=>animation.cancel())
+    const reduced=window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    coin.animate(reduced?[{opacity:1},{opacity:1}]:[
+      {opacity:0,transform:'translateY(5px) scale(.8)'},
+      {opacity:1,transform:'translateY(-12px) scale(1)',offset:.25},
+      {opacity:0,transform:'translateY(-22px) scale(.9)'}
+    ],{duration:1100})
+  }
+  coinMilestone=Math.max(coinMilestone??0,milestone)
 }
 function mobileDashboard() {
   if(mini) return ''
@@ -125,7 +143,12 @@ function mobileDashboard() {
       <progress id="compact-progress" max="1" value="0" aria-label="${t('work')}" hidden></progress>
       <p class="compact-encouragement" id="compact-encouragement"></p>
     </section>
-  </section>`
+  </section>
+  <div class="cat-room" aria-hidden="true">
+    <span class="cat-stars"></span>
+    <span class="cat-walker"><span class="pixel-cat"></span></span>
+    <span class="cat-office"><span class="pixel-cat"></span><span class="cat-desk"></span><span class="cat-screen"></span><span class="cat-coin" id="cat-coin"></span></span>
+  </div>`
 }
 function rateCards() {
   return `<div class="rates">${['second','minute','hour','daily'].map((k,i)=>`<div class="card">${mini?'':`<span class="chip">${icon(['bolt','clock','clock','calendar'][i])}</span>`}<div class="label">${t(k)}</div><strong class="value" id="rate-${i}"></strong></div>`).join('')}</div>`
@@ -209,6 +232,7 @@ function update(ms) {
       put('compact-encouragement',t(message))
     }
     sample={ms,rate,today,compactRate,compactValue,value:total(today,now)}
+    celebrateToday(today,sample.value)
     nextSample=ms+400
     put('live',t(rate!==0?'live':idleReason(state.sources,today,ms,work)))
     put('hero-rate',rateAmount(rate)+' / '+t('second'))
