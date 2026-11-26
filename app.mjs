@@ -1,4 +1,4 @@
-import {calendar,date,day,defaults,iso,isLunchBreak,nextDay,payday,windows} from './engine.mjs'
+import {addMonths,calendar,date,day,defaults,iso,isLunchBreak,nextDay,payday,windows} from './engine.mjs'
 import {translate} from './labels.mjs'
 import {currencies,methods,types,valid,validDate} from './storage.mjs'
 
@@ -298,9 +298,11 @@ const dateInput=(k,name,value,extra='')=>input(k,name,value,`type="date" min="19
 function sourceDate(name,value) {
   const [y='',m='',d='']=value.split('-')
   const numbers=(label,count,selected)=>`<label>${t(label)}<select data-date-part><option value=""></option>${Array.from({length:count},(_,i)=>String(i+1).padStart(2,'0')).map(v=>`<option value="${v}" ${v===selected?'selected':''}>${Number(v)}</option>`).join('')}</select></label>`
+  const terms=[6,12,24,36,48,60]
   return `<fieldset class="source-date" data-source-date>
     <legend>${t(name)}</legend>
     <input type="hidden" name="${name}" value="${value}">
+    ${name==='end'?`<label class="saving-term" data-saving-term hidden>${t('savingTerm')}<select><option value="">${t('manualDate')}</option>${terms.map(months=>`<option value="${months}">${months===6?t('sixMonths'):t('termYears').replace('{count}',months/12)}</option>`).join('')}</select></label>`:''}
     <div class="source-date-parts">
       <label>${t('dateYear')}<input data-date-part type="text" inputmode="numeric" maxlength="4" value="${y}"></label>
       ${numbers('dateMonth',12,m)}${numbers('dateDay',31,d)}
@@ -309,6 +311,18 @@ function sourceDate(name,value) {
   </fieldset>`
 }
 function connectSourceDates(form) {
+  const term=form.querySelector('[data-saving-term] select')
+  const controls={}
+  const applyTerm=()=>{
+    term.setCustomValidity('')
+    if(!term.value||!validDate(controls.start.result.value)) return
+    const maturity=iso(addMonths(date(controls.start.result.value),Number(term.value)))
+    if(!validDate(maturity)) {
+      term.setCustomValidity(t('invalidDate'))
+      return
+    }
+    controls.end.setDate(maturity)
+  }
   for(const control of form.querySelectorAll('[data-source-date]')) {
     const result=control.querySelector('input[type=hidden]')
     const parts=[...control.querySelectorAll('[data-date-part]')]
@@ -319,14 +333,31 @@ function connectSourceDates(form) {
       result.value=empty?'':candidate
       parts[2].setCustomValidity(empty||validDate(candidate)?'':t('invalidDate'))
     }
-    control.addEventListener('input',sync)
-    control.addEventListener('change',sync)
-    control.querySelector('[data-clear-date]')?.addEventListener('click',()=>{
-      for(const part of parts) part.value=''
+    const setDate=value=>{
+      const values=value.split('-')
+      parts.forEach((part,index)=>part.value=values[index]??'')
       sync()
+    }
+    controls[result.name]={result,setDate}
+    const manualEdit=event=>{
+      if(!parts.includes(event.target)) return
+      sync()
+      if(result.name==='start') applyTerm()
+      else {
+        term.value=''
+        term.setCustomValidity('')
+      }
+    }
+    control.addEventListener('input',manualEdit)
+    control.addEventListener('change',manualEdit)
+    control.querySelector('[data-clear-date]')?.addEventListener('click',()=>{
+      term.value=''
+      term.setCustomValidity('')
+      setDate('')
     })
     sync()
   }
+  term.addEventListener('change',applyTerm)
 }
 function select(k,name,value,options) {
   return `<label>${t(k)}<select name="${name}">${Object.entries(options).map(([v,label])=>`<option value="${v}" ${v===value?'selected':''}>${label}</option>`).join('')}</select></label>`
@@ -365,7 +396,16 @@ function sourceForm(id) {
   const defaultsByType={salary:['monthly','work'],deposit:['simple','always'],saving:['simple','always'],mmf:['compound','always'],other:['monthly','always']}
   function refresh() {
     const interest=['simple','compound'].includes(f.elements.method.value)
-    const endLabel=interest&&['deposit','saving'].includes(f.elements.type.value)?'maturityDate':'end'
+    const saving=f.elements.type.value==='saving'
+    const termControl=f.querySelector('[data-saving-term]')
+    const term=termControl.querySelector('select')
+    termControl.hidden=!saving
+    term.disabled=!saving
+    if(!saving) {
+      term.value=''
+      term.setCustomValidity('')
+    }
+    const endLabel=saving||(interest&&f.elements.type.value==='deposit')?'maturityDate':'end'
     f.elements.end.closest('fieldset').querySelector('legend').textContent=t(endLabel)
     const visible={amount:!interest,principal:interest,payment:interest&&f.elements.type.value==='saving',rate:interest}
     for(const [name,show] of Object.entries(visible)) {

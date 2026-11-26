@@ -12,6 +12,7 @@ const clipped = (y,m,n) => {
   const end = new Date(y,m+1,0)
   return new Date(year(end),month(end),Math.min(n,end.getDate()))
 }
+export const addMonths = (d,count) => clipped(year(d),month(d)+count,d.getDate())
 export function cycle(d,n) {
   const start = clipped(year(d),month(d),n)
   const offset = d < start ? -1 : 0

@@ -1,4 +1,5 @@
 const entries = {
+ savingTerm:['적금 기간','積立期間','Savings term'],manualDate:['직접 입력','手入力','Enter date manually'],sixMonths:['6개월','6か月','6 months'],termYears:['{count}년','{count}年','{count} yr'],
  assetHelp:['지금 보유한 자산의 합계를 직접 입력하세요. 수익원에 등록한 원금이나 실제 수익 기록은 여기에 자동 합산되지 않습니다.','現在保有している資産の合計を入力してください。登録した元本や実績収益は自動で加算されません。','Enter the total you currently hold. Source principal and recorded income do not automatically change this balance.'],
  currentCombinedRates:['현재 적립 중인 수익원 합계','現在計上中の収益源の合計','Combined current accrual'],
  dateYear:['년','年','Year'],dateMonth:['월','月','Month'],dateDay:['일','日','Day'],clearDate:['날짜 지우기','日付を消去','Clear date'],invalidDate:['올바른 연·월·일을 입력하세요.','有効な年月日を入力してください。','Enter a valid year, month, and day.'],

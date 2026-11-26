@@ -216,3 +216,6 @@ dialog input:is([type=date],[type=time])::-webkit-datetime-edit{min-inline-size:
   .mini .rates{grid-template-columns:repeat(2,minmax(0,1fr))}
   .mini .rates .card{padding-block:5px}
 }
+
+.saving-term{margin-bottom:10px}
+.saving-term select{min-height:44px}
