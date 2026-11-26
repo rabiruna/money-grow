@@ -13,7 +13,7 @@ const mini=new URLSearchParams(location.search).has('mini')
 document.body.classList.toggle('mini',mini)
 const t=k=>translate(state.lang,k)
 const locale=()=>({ko:'ko-KR',ja:'ja-JP',en:'en-US'})[state.lang]
-let format, precise, fullDate, shortDate, percentage
+let format, precise, fullDate, shortDate, percentage, interestPercentage
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c])
 const iconPaths={
  dashboard:'M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM14 14h7v7h-7z',
@@ -80,6 +80,7 @@ function render() {
   fullDate=new Intl.DateTimeFormat(loc,{dateStyle:'full'}).format
   shortDate=new Intl.DateTimeFormat(loc,{month:'short',day:'numeric',weekday:'short'}).format
   percentage=new Intl.NumberFormat(loc,{style:'percent',maximumFractionDigits:1}).format
+  interestPercentage=new Intl.NumberFormat(loc,{style:'percent',maximumFractionDigits:12}).format
   $('today-date').textContent=fullDate(new Date())
   $('page-title').textContent=t(mini?'mini':page)
   $('nav').innerHTML=['dashboard','sources','history','settings'].map(k=>`<button type="button" data-action="page:${k}" ${k===page?'aria-current="page"':''}>${icon(k)}${t(k)}</button>`).join('')
@@ -145,7 +146,7 @@ function dashboard() {
     <section class="card"><div class="card-head"><h2>${t('work')}</h2>${icon('clock')}</div>
     <div class="foot"><span class="muted" id="work-label"></span><strong id="time-left"></strong></div>
     <div class="foot"><span class="muted">${t('remaining')}</span><strong id="work-money"></strong></div>
-    <div class="foot"><span class="muted">${t('payday')}</span><strong id="payday"></strong></div></section>
+    <div class="foot"><span class="muted">${t('payday')}</span><strong id="payday"></strong></div><p class="work-encouragement" id="work-encouragement"></p></section>
     <section class="card"><div class="card-head"><h2>${t('goal')}</h2>${icon('goal')}</div>
     <div class="foot"><span class="muted">${t('assets')}</span><strong>${format(state.assets)}</strong></div>
     <progress aria-label="${t('goal')}" value="${Math.min(1,state.assets/state.goal)}" max="1"></progress>
@@ -157,7 +158,7 @@ function dashboard() {
 }
 function sourceRows(editable) {
   if(!state.sources.length) return `<p class="empty">${t('empty')}</p>`
-  return state.sources.map(s=>`<div class="row"><div><span class="row-name">${sourceName(s)}</span><span class="muted">${t(methods[s.method])} · ${s.method==='simple'||s.method==='compound'?percentage(s.rate/100):format(s.amount)}</span></div>${editable?maturity(s):''}<div class="row-actions">${editable?btn('edit','source:'+s.id)+btn('remove','delete-source:'+s.id,'','class="danger"'):`<span class="badge">${t(s.timing==='work'?'worktime':'always')}</span>`}</div></div>`).join('')
+  return state.sources.map(s=>`<div class="row"><div><span class="row-name">${sourceName(s)}</span><span class="muted">${t(methods[s.method])} · ${s.method==='simple'||s.method==='compound'?interestPercentage(s.rate/100):format(s.amount)}</span></div>${editable?maturity(s):''}<div class="row-actions">${editable?btn('edit','source:'+s.id)+btn('remove','delete-source:'+s.id,'','class="danger"'):`<span class="badge">${t(s.timing==='work'?'worktime':'always')}</span>`}</div></div>`).join('')
 }
 const sources=()=>`<section class="card">${sourceRows(true)}</section>`
 function history() {
@@ -177,6 +178,11 @@ function update(ms) {
     const [today,...periods]=dates(now), tomorrow=nextDay(today)
     const work=windows(today,state.schedule), end=work.at(-1)?.[1] ?? 0
     const remaining=Math.max(0,end-ms)
+    const scheduled=work.reduce((sum,[a,b])=>sum+b-a,0)
+    const worked=work.reduce((sum,[a,b])=>sum+Math.max(0,Math.min(ms,b)-a),0)
+    const progressValue=scheduled?worked/scheduled:0
+    const message=!scheduled?'cheerOff':!remaining?'cheerDone':isLunchBreak(now,state.schedule)?'cheerLunch':progressValue>=0.8?'cheerSoon':'cheerWork'
+    put('work-encouragement',t(message))
     const rate=total(now,new Date(ms+1))*1000
     let compactRate=0, compactValue=0
     if($('compact-counter')) {
@@ -198,11 +204,8 @@ function update(ms) {
         $('compact-source-'+src.id).classList.toggle('zero',value===0)
       }
       const progress=$('compact-progress')
-      const scheduled=work.reduce((sum,[a,b])=>sum+b-a,0)
-      const worked=work.reduce((sum,[a,b])=>sum+Math.max(0,Math.min(ms,b)-a),0)
       progress.hidden=!scheduled
-      progress.value=scheduled?worked/scheduled:0
-      const message=!scheduled?'cheerOff':!remaining?'cheerDone':isLunchBreak(now,state.schedule)?'cheerLunch':progress.value>=0.8?'cheerSoon':'cheerWork'
+      progress.value=progressValue
       put('compact-encouragement',t(message))
     }
     sample={ms,rate,today,compactRate,compactValue,value:total(today,now)}

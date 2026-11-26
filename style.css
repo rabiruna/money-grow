@@ -152,3 +152,5 @@ dialog input:is([type=date],[type=time])::-webkit-datetime-edit{min-inline-size:
 @media(max-width:680px){
   .compact-encouragement{margin-top:10px;color:#bac5d1;text-align:center;font-size:.875rem;overflow-wrap:anywhere}
 }
+
+.work-encouragement{margin-top:12px;color:var(--muted);font-size:.875rem}
