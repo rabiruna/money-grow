@@ -13,7 +13,7 @@ const mini=new URLSearchParams(location.search).has('mini')
 document.body.classList.toggle('mini',mini)
 const t=k=>translate(state.lang,k)
 const locale=()=>({ko:'ko-KR',ja:'ja-JP',en:'en-US'})[state.lang]
-let format, precise, rateFormat, fullDate, shortDate, percentage, counterFormats
+let format, precise, fullDate, shortDate, percentage
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c])
 const iconPaths={
  dashboard:'M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM14 14h7v7h-7z',
@@ -52,9 +52,10 @@ function actual(from,to) {
   return state.receipts.reduce((sum,r)=>r.date>=start&&r.date<=end?sum+r.amount:sum,0)
 }
 const total=(from,to)=>model.total(state.sources,from,to)
-function counterAmount(value,rate) {
-  const digits=rate?Math.min(8,Math.max(2,2-Math.floor(Math.log10(Math.abs(rate))))):2
-  return counterFormats[digits-2](value===0?0:value)
+function rateAmount(value) {
+  if(value>0 && value<0.01) return t('rateBelow').replace('{amount}',precise(0.01))
+  if(value<0 && value>-0.01) return t('rateAbove').replace('{amount}',precise(-0.01))
+  return precise(value===0?0:value)
 }
 function idleReason(sources,today,ms,work) {
   if(!sources.length) return 'idleEmpty'
@@ -76,10 +77,6 @@ function render() {
   const loc=locale(), options={style:'currency',currency:state.currency}
   format=new Intl.NumberFormat(loc,options).format
   precise=new Intl.NumberFormat(loc,{...options,minimumFractionDigits:2,maximumFractionDigits:2}).format
-  const normalRate=new Intl.NumberFormat(loc,{...options,minimumFractionDigits:2,maximumFractionDigits:4}).format
-  const smallRate=new Intl.NumberFormat(loc,{...options,minimumFractionDigits:2,maximumFractionDigits:12}).format
-  rateFormat=value=>value!==0&&Math.abs(value)<0.01?smallRate(value):normalRate(value)
-  counterFormats=Array.from({length:7},(_,i)=>new Intl.NumberFormat(loc,{...options,minimumFractionDigits:i+2,maximumFractionDigits:i+2}).format)
   fullDate=new Intl.DateTimeFormat(loc,{dateStyle:'full'}).format
   shortDate=new Intl.DateTimeFormat(loc,{month:'short',day:'numeric',weekday:'short'}).format
   percentage=new Intl.NumberFormat(loc,{style:'percent',maximumFractionDigits:1}).format
@@ -194,7 +191,7 @@ function update(ms) {
       compactValue=measure(start,now)
       put('compact-live',t(compactRate!==0?'compactLive':idleReason(visibleSources,today,ms,work)))
       $('compact-status').classList.toggle('earning',compactRate!==0)
-      ;[compactRate,compactRate*60,compactRate*3600].forEach((v,i)=>put('compact-rate-'+i,rateFormat(v)))
+      ;[compactRate,compactRate*60,compactRate*3600].forEach((v,i)=>put('compact-rate-'+i,rateAmount(v)))
       for(const src of visibleSources) {
         const value=model.sourceTotal(src,start,now)
         put('compact-source-'+src.id,(value>0?'+':'')+(value===0?format(0):precise(value)))
@@ -211,8 +208,8 @@ function update(ms) {
     sample={ms,rate,today,compactRate,compactValue,value:total(today,now)}
     nextSample=ms+400
     put('live',t(rate!==0?'live':idleReason(state.sources,today,ms,work)))
-    put('hero-rate',rateFormat(rate)+' / '+t('second'))
-    ;[rate,rate*60,rate*3600,total(today,tomorrow)].forEach((v,i)=>put('rate-'+i,(i===3?precise:rateFormat)(v)))
+    put('hero-rate',rateAmount(rate)+' / '+t('second'))
+    ;[rate,rate*60,rate*3600,total(today,tomorrow)].forEach((v,i)=>put('rate-'+i,(i===3?precise:rateAmount)(v)))
     ;[today,...periods].forEach((from,i)=>{
       put('estimate-'+i,format(i===0?sample.value:total(from,now)))
       put('actual-'+i,format(actual(from,now)))
@@ -229,10 +226,9 @@ function update(ms) {
     if(chartDay!==iso(today)) { chartDay=iso(today); drawChart() }
   }
   const value=sample.value+sample.rate*(ms-sample.ms)/1000
-  const display=counterAmount(value,sample.rate)
-  put('counter',display)
+  put('counter',precise(value===0?0:value))
   const compact=sample.compactValue+sample.compactRate*(ms-sample.ms)/1000
-  put('compact-counter',counterAmount(compact,sample.compactRate))
+  put('compact-counter',precise(compact===0?0:compact))
 }
 function drawChart() {
   const canvas=$('chart')

@@ -1,4 +1,5 @@
 const entries = {
+ rateBelow:['{amount} 미만','{amount}未満','< {amount}'],rateAbove:['{amount} 초과','{amount}超','> {amount}'],
  idleLunch:['점심시간','昼休み','Lunch break'],
  cheerOff:['쉬는 날도 잘 보내요.','お休みの日もよい一日を。','Enjoy your day off.'],
  cheerDone:['오늘도 수고했어요!','今日もお疲れさまでした！','Nice work today!'],
