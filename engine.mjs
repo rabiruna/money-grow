@@ -30,6 +30,13 @@ function isWorkday(d,s) {
   const key=iso(d)
   return s.weekdays.includes(d.getDay())&&!s.holidays.includes(key)&&!s.leave.includes(key)
 }
+export function workCountdown(now,s) {
+  if(!isWorkday(now,s)) return {phase:'off',remaining:0,end:0}
+  const start=+clock(now,s.in), end=+clock(now,s.out)
+  if(now<start) return {phase:'before',remaining:start-now,end}
+  if(now<end) return {phase:'working',remaining:end-now,end}
+  return {phase:'done',remaining:0,end}
+}
 export function isLunchBreak(now,s) {
   if(!s.minutes||!isWorkday(now,s)) return false
   const lunch=+clock(now,s.lunch)
