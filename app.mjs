@@ -141,7 +141,12 @@ function mobileDashboard() {
       <label class="compact-picker"><span class="compact-sr">${t('compactPeriod')}</span><select id="compact-period">${Object.entries(homePeriods()).map(([value,label])=>`<option value="${value}" ${value===(state.home?.period??'auto')?'selected':''}>${label}</option>`).join('')}</select></label></div>
     ${maturity(selected)}
     <div class="compact-rates">${selected?'':`<p class="compact-rate-scope">${t('currentCombinedRates')}</p>`}${['second','minute','hour'].map((k,i)=>`<div><span>${t(k)}</span><strong id="compact-rate-${i}"></strong></div>`).join('')}<div class="compact-daily"><span>${t('dailyTotal')}</span><strong id="compact-daily"></strong></div></div>
-    <section class="compact-sources" aria-label="${t('sources')}">${rows||btn('add','source')}</section>
+    <section class="compact-sources" aria-label="${t('sources')}">
+      ${rows?`<details class="compact-source-disclosure">
+        <summary><span>${t('sources')}</span><span class="compact-source-count">${t('sourceCount').replace('{count}',shown.length)}<i aria-hidden="true"></i></span></summary>
+        <div class="compact-source-list" role="region" aria-label="${t('sources')}" tabindex="0">${rows}</div>
+      </details>`:btn('add','source')}
+    </section>
     <section class="compact-work" ${selected?.timing==='always'?'hidden':''}><div class="compact-row"><span id="compact-work-label"></span><strong id="compact-time"></strong></div>
       <progress id="compact-progress" max="1" value="0" aria-label="${t('work')}" hidden></progress>
     </section>

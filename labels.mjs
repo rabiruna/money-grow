@@ -1,4 +1,5 @@
 const entries = {
+ sourceCount:['{count}개','{count}件','{count} listed'],
  dailyTotal:['오늘 하루 예상 합계','今日一日の見込み合計','Projected total today'],
  registeredAssets:['등록 수익원 추정 합계','登録した収益源の推定合計','Estimated total from sources'],
  manualAssets:['직접 입력한 자산','手入力した資産','Manually entered assets'],
