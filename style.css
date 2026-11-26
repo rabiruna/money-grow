@@ -191,3 +191,11 @@ dialog input:is([type=date],[type=time])::-webkit-datetime-edit{min-inline-size:
   .compact-panel .compact-sources{padding-block:8px}
   .compact-panel .compact-work{padding-top:8px}
 }
+
+.source-date{min-inline-size:0}
+.source-date-parts{display:grid;grid-template-columns:minmax(0,1.4fr) repeat(2,minmax(0,1fr));gap:6px}
+.source-date-parts :is(input,select){min-height:44px;padding-inline:6px}
+.source-date button{margin-top:8px}
+@media(max-width:680px){
+  .compact-rate-scope{grid-column:1/-1;margin:0 0 2px;text-align:center;color:#bac5d1;font-size:.8125rem}
+}

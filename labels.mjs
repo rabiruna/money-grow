@@ -1,4 +1,6 @@
 const entries = {
+ currentCombinedRates:['현재 적립 중인 수익원 합계','現在計上中の収益源の合計','Combined current accrual'],
+ dateYear:['년','年','Year'],dateMonth:['월','月','Month'],dateDay:['일','日','Day'],clearDate:['날짜 지우기','日付を消去','Clear date'],invalidDate:['올바른 연·월·일을 입력하세요.','有効な年月日を入力してください。','Enter a valid year, month, and day.'],
  petCats:['고양이 쓰다듬기','猫をなでる','Pet the cats'],
  cheerWorkTwo:['오늘도 차근차근 잘하고 있어요.','今日も一歩ずつ進んでいます。','You’re making steady progress.'],
  cheerWorkThree:['작은 금액도 모이면 꽤 커져요.','小さな額でも積み重なれば大きくなります。','Small amounts add up.'],

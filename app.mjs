@@ -140,7 +140,7 @@ function mobileDashboard() {
       <label class="compact-picker"><span class="compact-sr">${t('sources')}</span><select id="compact-picker"><option value="">${t('compactAll')}</option>${state.sources.map(s=>`<option value="${s.id}" ${s===selected?'selected':''}>${sourceName(s)}</option>`).join('')}</select></label>
       <label class="compact-picker"><span class="compact-sr">${t('compactPeriod')}</span><select id="compact-period">${Object.entries(homePeriods()).map(([value,label])=>`<option value="${value}" ${value===(state.home?.period??'auto')?'selected':''}>${label}</option>`).join('')}</select></label></div>
     ${maturity(selected)}
-    <div class="compact-rates">${['second','minute','hour'].map((k,i)=>`<div><span>${t(k)}</span><strong id="compact-rate-${i}"></strong></div>`).join('')}</div>
+    <div class="compact-rates">${selected?'':`<p class="compact-rate-scope">${t('currentCombinedRates')}</p>`}${['second','minute','hour'].map((k,i)=>`<div><span>${t(k)}</span><strong id="compact-rate-${i}"></strong></div>`).join('')}</div>
     <section class="compact-sources" aria-label="${t('sources')}">${rows||btn('add','source')}</section>
     <section class="compact-work" ${selected?.timing==='always'?'hidden':''}><div class="compact-row"><span id="compact-work-label"></span><strong id="compact-time"></strong></div>
       <progress id="compact-progress" max="1" value="0" aria-label="${t('work')}" hidden></progress>
@@ -209,7 +209,8 @@ function update(ms) {
     const progressValue=scheduled?worked/scheduled:0
     const message=!scheduled?'cheerOff':!remaining?'cheerDone':isLunchBreak(now,state.schedule)?'cheerLunch':progressValue>=0.8?'cheerSoon':workCheer
     put('work-encouragement',t(message))
-    const rate=total(now,new Date(ms+1))*1000
+    const rateEnd=new Date(ms+1)
+    const rate=total(now,rateEnd)*1000
     let compactRate=0, compactValue=0
     if($('compact-counter')) {
       const selected=state.sources.find(s=>s.id===state.home?.source)
@@ -219,7 +220,7 @@ function update(ms) {
       const start=period==='since'
         ? new Date(visibleSources.reduce((earliest,src)=>Math.min(earliest,+date(src.start)),ms))
         : period==='month'?periods[0]:period==='year'?periods[1]:today
-      compactRate=measure(now,new Date(ms+1))*1000
+      compactRate=selected?model.sourceTotal(selected,now,rateEnd)*1000:rate
       compactValue=measure(start,now)
       put('compact-live',t(compactRate!==0?'compactLive':idleReason(visibleSources,today,ms,work)))
       $('compact-status').classList.toggle('earning',compactRate!==0)
@@ -283,6 +284,39 @@ function drawChart() {
 const input=(k,name,value='',extra='')=>`<label>${t(k)}<input name="${name}" value="${esc(value)}" ${extra}></label>`
 const numeric=(k,name,value,step='any',extra='')=>input(k,name,value,`type="number" step="${step}" required ${extra}`)
 const dateInput=(k,name,value,extra='')=>input(k,name,value,`type="date" min="1900-01-01" max="2199-12-31" ${extra}`)
+function sourceDate(name,value) {
+  const [y='',m='',d='']=value.split('-')
+  const numbers=(label,count,selected)=>`<label>${t(label)}<select data-date-part><option value=""></option>${Array.from({length:count},(_,i)=>String(i+1).padStart(2,'0')).map(v=>`<option value="${v}" ${v===selected?'selected':''}>${Number(v)}</option>`).join('')}</select></label>`
+  return `<fieldset class="source-date" data-source-date>
+    <legend>${t(name)}</legend>
+    <input type="hidden" name="${name}" value="${value}">
+    <div class="source-date-parts">
+      <label>${t('dateYear')}<input data-date-part type="text" inputmode="numeric" maxlength="4" value="${y}"></label>
+      ${numbers('dateMonth',12,m)}${numbers('dateDay',31,d)}
+    </div>
+    ${name==='end'?`<button type="button" data-clear-date>${t('clearDate')}</button>`:''}
+  </fieldset>`
+}
+function connectSourceDates(form) {
+  for(const control of form.querySelectorAll('[data-source-date]')) {
+    const result=control.querySelector('input[type=hidden]')
+    const parts=[...control.querySelectorAll('[data-date-part]')]
+    const sync=()=>{
+      const values=parts.map(part=>part.value)
+      const candidate=values.join('-')
+      const empty=result.name==='end'&&values.every(value=>!value)
+      result.value=empty?'':candidate
+      parts[2].setCustomValidity(empty||validDate(candidate)?'':t('invalidDate'))
+    }
+    control.addEventListener('input',sync)
+    control.addEventListener('change',sync)
+    control.querySelector('[data-clear-date]')?.addEventListener('click',()=>{
+      for(const part of parts) part.value=''
+      sync()
+    })
+    sync()
+  }
+}
 function select(k,name,value,options) {
   return `<label>${t(k)}<select name="${name}">${Object.entries(options).map(([v,label])=>`<option value="${v}" ${v===value?'selected':''}>${label}</option>`).join('')}</select></label>`
 }
@@ -314,13 +348,14 @@ function sourceForm(id) {
     +numeric('principal','principal',s.principal,'any','min="0"')
     +numeric('payment','payment',s.payment,'any','min="0"')
     +numeric('rate','rate',s.rate,'any','min="-99" max="1000"')
-    +dateInput('start','start',s.start,'required')+dateInput('end','end',s.end),
+    +sourceDate('start',s.start)+sourceDate('end',s.end),
     data=>({...state,sources:upsert(state.sources,{id:old?.id??uid(),...Object.fromEntries(data),amount:num(data,'amount'),principal:num(data,'principal'),payment:num(data,'payment'),rate:num(data,'rate')})}))
+  connectSourceDates(f)
   const defaultsByType={salary:['monthly','work'],deposit:['simple','always'],saving:['simple','always'],mmf:['compound','always'],other:['monthly','always']}
   function refresh() {
     const interest=['simple','compound'].includes(f.elements.method.value)
     const endLabel=interest&&['deposit','saving'].includes(f.elements.type.value)?'maturityDate':'end'
-    f.elements.end.closest('label').firstChild.textContent=t(endLabel)
+    f.elements.end.closest('fieldset').querySelector('legend').textContent=t(endLabel)
     const visible={amount:!interest,principal:interest,payment:interest&&f.elements.type.value==='saving',rate:interest}
     for(const [name,show] of Object.entries(visible)) {
       f.elements[name].closest('label').hidden=!show
