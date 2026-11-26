@@ -1,4 +1,5 @@
 const entries = {
+ dailyTotal:['오늘 하루 예상 합계','今日一日の見込み合計','Projected total today'],
  registeredAssets:['등록 수익원 추정 합계','登録した収益源の推定合計','Estimated total from sources'],
  manualAssets:['직접 입력한 자산','手入力した資産','Manually entered assets'],
  registeredAssetsHelp:['월급을 제외한 원금·예상 납입액·예상 수익의 합계입니다. 출금이나 만기 후 이동한 돈은 자동으로 반영되지 않습니다.','給与を除く元本・予定積立額・推定収益の合計です。出金や満期後の資金移動は自動反映されません。','Total principal, scheduled contributions and estimated earnings, excluding salary. Withdrawals and transfers after maturity are not tracked automatically.'],

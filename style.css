@@ -220,3 +220,7 @@ dialog input:is([type=date],[type=time])::-webkit-datetime-edit{min-inline-size:
 .saving-term{margin-bottom:10px}
 .saving-term select{min-height:44px}
 .asset-estimate-note{margin-top:6px}
+@media(max-width:680px){
+  .compact-daily{grid-column:1/-1;display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin-top:4px;text-align:start}
+  .compact-rates .compact-daily strong{margin:0;text-align:end;min-width:0}
+}

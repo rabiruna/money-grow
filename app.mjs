@@ -140,7 +140,7 @@ function mobileDashboard() {
       <label class="compact-picker"><span class="compact-sr">${t('sources')}</span><select id="compact-picker"><option value="">${t('compactAll')}</option>${state.sources.map(s=>`<option value="${s.id}" ${s===selected?'selected':''}>${sourceName(s)}</option>`).join('')}</select></label>
       <label class="compact-picker"><span class="compact-sr">${t('compactPeriod')}</span><select id="compact-period">${Object.entries(homePeriods()).map(([value,label])=>`<option value="${value}" ${value===(state.home?.period??'auto')?'selected':''}>${label}</option>`).join('')}</select></label></div>
     ${maturity(selected)}
-    <div class="compact-rates">${selected?'':`<p class="compact-rate-scope">${t('currentCombinedRates')}</p>`}${['second','minute','hour'].map((k,i)=>`<div><span>${t(k)}</span><strong id="compact-rate-${i}"></strong></div>`).join('')}</div>
+    <div class="compact-rates">${selected?'':`<p class="compact-rate-scope">${t('currentCombinedRates')}</p>`}${['second','minute','hour'].map((k,i)=>`<div><span>${t(k)}</span><strong id="compact-rate-${i}"></strong></div>`).join('')}<div class="compact-daily"><span>${t('dailyTotal')}</span><strong id="compact-daily"></strong></div></div>
     <section class="compact-sources" aria-label="${t('sources')}">${rows||btn('add','source')}</section>
     <section class="compact-work" ${selected?.timing==='always'?'hidden':''}><div class="compact-row"><span id="compact-work-label"></span><strong id="compact-time"></strong></div>
       <progress id="compact-progress" max="1" value="0" aria-label="${t('work')}" hidden></progress>
@@ -222,6 +222,7 @@ function update(ms) {
     const progressValue=scheduled?worked/scheduled:0
     const message=!scheduled?'cheerOff':!remaining?'cheerDone':isLunchBreak(now,state.schedule)?'cheerLunch':progressValue>=0.8?'cheerSoon':workCheer
     put('work-encouragement',t(message))
+    const dailyTotal=total(today,tomorrow)
     const rateEnd=new Date(ms+1)
     const rate=total(now,rateEnd)*1000
     let compactRate=0, compactValue=0
@@ -235,6 +236,7 @@ function update(ms) {
         : period==='month'?periods[0]:period==='year'?periods[1]:today
       compactRate=selected?model.sourceTotal(selected,now,rateEnd)*1000:rate
       compactValue=measure(start,now)
+      put('compact-daily',format(dailyTotal))
       put('compact-live',t(compactRate!==0?'compactLive':idleReason(visibleSources,today,ms,work)))
       $('compact-status').classList.toggle('earning',compactRate!==0)
       ;[compactRate,compactRate*60,compactRate*3600].forEach((v,i)=>put('compact-rate-'+i,rateAmount(v)))
@@ -253,7 +255,7 @@ function update(ms) {
     nextSample=ms+400
     put('live',t(rate!==0?'live':idleReason(state.sources,today,ms,work)))
     put('hero-rate',rateAmount(rate)+' / '+t('second'))
-    ;[rate,rate*60,rate*3600,total(today,tomorrow)].forEach((v,i)=>put('rate-'+i,(i===3?precise:rateAmount)(v)))
+    ;[rate,rate*60,rate*3600,dailyTotal].forEach((v,i)=>put('rate-'+i,(i===3?precise:rateAmount)(v)))
     ;[today,...periods].forEach((from,i)=>{
       put('estimate-'+i,format(i===0?sample.value:total(from,now)))
       put('actual-'+i,format(actual(from,now)))
