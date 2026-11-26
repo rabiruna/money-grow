@@ -168,7 +168,7 @@ dialog input:is([type=date],[type=time])::-webkit-datetime-edit{min-inline-size:
     border-color:transparent;background:transparent;
   }
   .compact-cat .pixel-cat{
-    display:block;width:27px;height:20px;background:url('./pixel-cats.png') center/contain no-repeat;
+    display:block;width:24px;height:24px;background:url('./pixel-cats.png') center/contain no-repeat;
     image-rendering:pixelated;animation:cat-shift 16s ease-in-out infinite;
   }
   .compact-cat :is(.cat-heart,.cat-coin){position:absolute;bottom:27px;opacity:0;pointer-events:none}
