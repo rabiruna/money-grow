@@ -52,38 +52,54 @@
   .compact-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
 }
 
-.mini main{padding:10px 12px 12px;max-width:620px}
-.mini .top{margin-bottom:8px}
+.mini main{
+  --mini-top-gap:10px;
+  max-width:620px;
+  padding:var(--mini-top-gap) 12px 10px;
+}
+.mini .top{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  gap:8px;
+  margin-bottom:8px;
+}
 .mini #today-date{display:none}
-.mini h1{font-size:1.125rem;line-height:1.2}
+.mini h1{font-size:1.125rem;line-height:1.2;overflow-wrap:anywhere}
 .mini #actions{gap:5px}
 .mini #actions button{min-height:34px;padding:5px 8px;font-size:.875rem}
-.mini .hero{min-height:0;padding:12px 14px;border-radius:13px}
+.mini .hero{
+  min-height:0;
+  padding:12px 14px;
+  border-radius:13px;
+  background:#131f35;
+}
 .mini .hero .live{margin-bottom:7px;padding:3px 8px}
 .mini .hero .caption{font-size:.875rem}
-.mini .counter{font-size:clamp(1.65rem,8vw,2.75rem);line-height:1.12;margin:3px 0 0}
+.mini .counter{font-size:clamp(1.65rem,8vw,2.75rem);line-height:1.12;margin:3px 0 0;max-width:100%}
 .mini .rates{grid-template-columns:repeat(4,minmax(0,1fr));gap:5px;margin-top:7px}
-.mini .rates .card{border-radius:8px;padding:7px 6px}
+.mini .rates .card{container-type:inline-size;border-radius:8px;padding:7px 6px}
 .mini .rates .label{font-size:.8125rem;line-height:1.2}
-.mini .rates .value{display:block;font-size:.9375rem;line-height:1.2;margin-top:4px}
-@media(max-width:350px){
+.mini .rates .value{
+  font-size:min(.9375rem,calc(135cqi / var(--metric-length,10)));
+  line-height:1.2;
+  margin-top:4px;
+  white-space:nowrap;
+}
+@media(max-width:520px){
   .mini .rates{grid-template-columns:repeat(2,minmax(0,1fr))}
 }
-@media(max-height:245px){
-  .mini main{padding:6px 8px}
+@media(max-height:260px){
+  .mini main{--mini-top-gap:6px;padding-inline:8px;padding-bottom:6px}
   .mini .top{margin-bottom:4px}
   .mini .hero{padding:7px 10px}
   .mini .hero .live{margin-bottom:3px}
   .mini .counter{font-size:clamp(1.35rem,7vw,2rem)}
-  .mini .rates{margin-top:4px}
-  .mini .rates .card{padding:4px}
-}
-@media(max-width:350px) and (max-height:245px){
-  .mini main{padding-block:4px 0}
-  .mini .top{margin-bottom:3px}
-  .mini .rates{gap:3px}
-  .mini .rates .card{padding-block:3px}
+  .mini .rates{margin-top:4px;gap:4px}
+  .mini .rates .card{padding:4px 6px}
   .mini .rates .value{margin-top:2px}
+}
+@media(display-mode:standalone){
+  .mini main{padding-block-start:max(24px,calc(env(safe-area-inset-top,0px) + var(--mini-top-gap)))}
 }
 
 .schedule-dialog .fields{grid-template-columns:minmax(0,1fr)}
@@ -201,19 +217,6 @@ dialog input:is([type=date],[type=time])::-webkit-datetime-edit{min-inline-size:
 .record-totals{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:14px 0 9px}
 .record-totals>div{display:grid;gap:4px;background:var(--soft);border-radius:8px;padding:8px;min-width:0}
 .record-totals strong{font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
-.mini .rates .card{container-type:inline-size}
-.mini .rates .value{
-  font-size:clamp(.62rem,calc(145cqi / var(--metric-length,10)),.9375rem);
-  white-space:nowrap;overflow-wrap:normal;
-}
-@media(max-width:500px) and (min-height:280px){
-  .mini main{padding-block:8px}
-  .mini .top{margin-bottom:6px}
-  .mini .hero{padding-block:8px}
-  .mini .rates{grid-template-columns:repeat(2,minmax(0,1fr))}
-  .mini .rates .card{padding-block:5px}
-}
-
 .saving-term{margin-bottom:10px}
 .saving-term select{min-height:44px}
 .asset-estimate-note{margin-top:6px}
