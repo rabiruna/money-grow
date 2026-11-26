@@ -1,4 +1,4 @@
-import {addMonths,calendar,date,day,defaults,iso,isLunchBreak,nextDay,nextRestDay,payday,windows} from './engine.mjs'
+import {addMonths,calendar,date,day,defaults,iso,isLunchBreak,nextDay,nextRestDay,payday,windows,workCountdown} from './engine.mjs'
 import {translate} from './labels.mjs'
 import {currencies,methods,types,valid,validDate} from './storage.mjs'
 
@@ -226,12 +226,12 @@ function update(ms) {
   const now=new Date(ms)
   if(ms>=nextSample || ms<sample?.ms) {
     const [today,...periods]=dates(now), tomorrow=nextDay(today)
-    const work=windows(today,state.schedule), end=work.at(-1)?.[1] ?? 0
-    const remaining=Math.max(0,end-ms)
+    const work=windows(today,state.schedule)
+    const {phase,remaining,end}=workCountdown(now,state.schedule)
     const scheduled=work.reduce((sum,[a,b])=>sum+b-a,0)
     const worked=work.reduce((sum,[a,b])=>sum+Math.max(0,Math.min(ms,b)-a),0)
     const progressValue=scheduled?worked/scheduled:0
-    const message=!scheduled?'cheerOff':!remaining?'cheerDone':isLunchBreak(now,state.schedule)?'cheerLunch':progressValue>=0.8?'cheerSoon':workCheer
+    const message=phase==='off'?'cheerOff':phase==='done'?'cheerDone':phase==='before'?'cheerBefore':isLunchBreak(now,state.schedule)?'cheerLunch':progressValue>=0.8?'cheerSoon':workCheer
     put('work-encouragement',t(message))
     const dailyTotal=total(today,tomorrow)
     const rateEnd=new Date(ms+1)
@@ -273,9 +273,10 @@ function update(ms) {
     })
     const seconds=Math.ceil(remaining/1000)
     const time=[Math.floor(seconds/3600),Math.floor(seconds/60)%60,seconds%60].map(x=>String(x).padStart(2,'0')).join(':')
-    put('work-label',t(remaining?'until':'off'))
+    const workLabel=t({before:'untilStart',working:'until',done:'workDone',off:'workOff'}[phase])
+    put('work-label',workLabel)
     put('time-left',remaining?time:'')
-    put('compact-work-label',t(remaining?'until':'off'))
+    put('compact-work-label',workLabel)
     put('compact-time',remaining?time:'')
     put('work-money',format(remaining?total(now,new Date(end)):0))
     put('payday',shortDate(payday(now,state.schedule.payday)))
